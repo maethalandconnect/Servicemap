@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แผนผังจุดบริการอิเล็กทรอนิกส์ สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body { 
+      font-family: 'Prompt', sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      min-height: 100vh; 
+      color: #333; 
+    }
+    .map-wrapper { 
+      position: relative; 
+      display: inline-block; 
+      width: 100%; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      background-color: #fff; 
+    }
+    .map-image { 
+      width: 100%; 
+      height: auto; 
+      display: block; 
+    }
+    
+    /* พื้นที่จุดคลิกบนแผนผัง */
+    .hotspot {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 5;
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .hotspot:hover {
+      background-color: rgba(13, 110, 253, 0.15);
+      box-shadow: inset 0 0 10px rgba(13, 110, 253, 0.3);
+    }
+
+    /* ป้ายชื่อลอยตามเมาส์ */
+    #cursorTooltip {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      pointer-events: none;
+      z-index: 99999;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+      white-space: nowrap;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* หน้าต่างแสดงข้อมูลสไตล์กระจกใส (Glassmorphism) */
+    .modal-content.glass-modal {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      transform: perspective(1000px) rotateX(8deg) translateY(-20px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal.show .modal-content.glass-modal {
+      transform: perspective(1000px) rotateX(0deg) translateY(0);
+      opacity: 1;
+    }
+    .glass-header {
+      background: linear-gradient(135deg, rgba(13, 110, 253, 0.9), rgba(11, 94, 215, 0.95));
+      backdrop-filter: blur(10px);
+      color: white;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1.25rem 1.75rem;
+    }
+    .glass-header .btn-close { filter: invert(1); }
+    .glass-body { padding: 1.75rem; }
+    .glass-description-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-left: 5px solid #0d6efd;
+      padding: 1.25rem;
+      border-radius: 14px;
+      margin-top: 1.25rem;
+      box-shadow: 0 10px 30px 0 rgba(31, 38, 135, 0.08);
+      color: #2c3e50;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+    .carousel-item img {
+      width: 100%;
+      height: 350px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    #loadingSpinner { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(255, 255, 255, 0.9); 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9999; 
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ป้ายชื่อลอยตามเมาส์ -->
+  <div id="cursorTooltip">
+    <i class="fa-solid fa-location-dot me-1 text-warning"></i>
+    <span id="tooltipText"></span>
+  </div>
+
+  <!-- หน้าจอโหลดข้อมูล -->
+  <div id="loadingSpinner">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <p class="mt-3 text-secondary fw-bold">กำลังโหลดผังจุดบริการ...</p>
+  </div>
+
+  <div class="container my-4 text-center">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <div class="d-none d-md-block"></div>
+      <h2 class="fw-bold text-primary m-0 fs-4 fs-md-2">
+        <i class="fa-solid fa-map-location-dot me-2"></i>แผนผังจุดบริการอิเล็กทรอนิกส์ สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ
+      </h2>
+      <!-- เปลี่ยนลิงก์ให้เปิดไฟล์ fixpoint.html บน GitHub -->
+      <a href="fixpoint.html" class="btn btn-outline-secondary btn-sm shadow-sm">
+        <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
+      </a>
+    </div>
+    <p class="text-muted mb-4">เลื่อนเมาส์สำรวจจุดบริการ และคลิกพื้นที่จุดบริการบนภาพผัง เพื่อดูรายละเอียดสถานที่บริการและข้อมูลติดต่อ</p>
+
+    <div class="map-wrapper" id="mapWrapper">
+      <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ">
+      <div id="hotspotContainer"></div>
+    </div>
+  </div>
+
+  <!-- หน้าต่างป๊อปอัพแสดงรายละเอียด -->
+  <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content glass-modal">
+        <div class="glass-header d-flex justify-content-between align-items-center">
+          <h5 class="modal-title fw-bold m-0">
+            <i class="fa-solid fa-circle-info me-2"></i><span id="modalTitle"></span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="glass-body text-start">
+          <div id="imageCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+            <div class="carousel-indicators" id="carouselIndicators"></div>
+            <div class="carousel-inner" id="carouselInner"></div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="glass-description-card">
+            <h6 class="fw-bold text-primary mb-2">
+              <i class="fa-solid fa-align-left me-2"></i>รายละเอียดจุดบริการ
+            </h6>
+            <div id="modalDescription"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ====================================================================
+    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
+    // ====================================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-iyWcolWlSrmb8qN0GvRY6REqAIbCgKB7RYmHp5tqNRej2VO_kE6xUe-Acl9djm2k/exec';
+
+    let infoModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+      loadMapData();
+    });
+
+    async function loadMapData() {
+      try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        renderMap(data);
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message);
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+    }
+
+    function renderMap(data) {
+      if (data.mapUrl) {
+        document.getElementById('mainMap').src = data.mapUrl;
+      }
+      
+      const container = document.getElementById('hotspotContainer');
+      container.innerHTML = '';
+
+      const tooltip = document.getElementById('cursorTooltip');
+      const tooltipText = document.getElementById('tooltipText');
+
+      if (data.hotspots && data.hotspots.length > 0) {
+        data.hotspots.forEach(spot => {
+          const div = document.createElement('div');
+          div.className = 'hotspot';
+          div.style.top = spot.coords.top + '%';
+          div.style.left = spot.coords.left + '%';
+          div.style.width = spot.coords.width + '%';
+          div.style.height = spot.coords.height + '%';
+          
+          div.addEventListener('mousemove', function(e) {
+            tooltipText.innerText = spot.name;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY + 15) + 'px';
+          });
+
+          div.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+          });
+
+          div.onclick = () => {
+            tooltip.style.display = 'none';
+            showDetail(spot);
+          };
+
+          container.appendChild(div);
+        });
+      }
+      
+      document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    function showDetail(spot) {
+      document.getElementById('modalTitle').innerText = spot.name;
+      document.getElementById('modalDescription').innerText = spot.description || 'ไม่มีคำอธิบาย';
+      
+      const carouselInner = document.getElementById('carouselInner');
+      const carouselIndicators = document.getElementById('carouselIndicators');
+      const carouselElem = document.getElementById('imageCarousel');
+      
+      carouselInner.innerHTML = '';
+      carouselIndicators.innerHTML = '';
+
+      if (spot.images && spot.images.length > 0) {
+        carouselElem.style.display = 'block';
+        spot.images.forEach((imgUrl, index) => {
+          const indicator = document.createElement('button');
+          indicator.type = 'button';
+          indicator.dataset.bsTarget = '#imageCarousel';
+          indicator.dataset.bsSlideTo = index;
+          if (index === 0) indicator.className = 'active';
+          carouselIndicators.appendChild(indicator);
+
+          const item = document.createElement('div');
+          item.className = 'carousel-item' + (index === 0 ? ' active' : '');
+          item.innerHTML = `<img src="${imgUrl}" alt="${spot.name}" onerror="this.src='https://via.placeholder.com/600x350?text=ไม่พบรูปภาพ'">`;
+          carouselInner.appendChild(item);
+        });
+      } else {
+        carouselElem.style.display = 'none';
+      }
+      
+      infoModal.show();
+    }
+  </script>
+</body>
+</html>
