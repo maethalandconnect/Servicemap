@@ -26,13 +26,8 @@
       overflow: hidden; 
       background-color: #fff; 
     }
-    .map-image { 
-      width: 100%; 
-      height: auto; 
-      display: block; 
-    }
+    .map-image { width: 100%; height: auto; display: block; }
     
-    /* พื้นที่จุดคลิกบนแผนผัง */
     .hotspot {
       position: absolute;
       background: transparent;
@@ -46,7 +41,6 @@
       box-shadow: inset 0 0 10px rgba(13, 110, 253, 0.3);
     }
 
-    /* ป้ายชื่อลอยตามเมาส์ */
     #cursorTooltip {
       position: fixed;
       background: rgba(0, 0, 0, 0.85);
@@ -64,7 +58,6 @@
       transition: transform 0.05s ease-out;
     }
 
-    /* หน้าต่างแสดงข้อมูลสไตล์กระจกใส (Glassmorphism) */
     .modal-content.glass-modal {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
@@ -130,13 +123,11 @@
 </head>
 <body>
 
-  <!-- ป้ายชื่อลอยตามเมาส์ -->
   <div id="cursorTooltip">
     <i class="fa-solid fa-location-dot me-1 text-warning"></i>
     <span id="tooltipText"></span>
   </div>
 
-  <!-- หน้าจอโหลดข้อมูล -->
   <div id="loadingSpinner">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
     <p class="mt-3 text-secondary fw-bold">กำลังโหลดผังจุดบริการ...</p>
@@ -148,10 +139,9 @@
       <h2 class="fw-bold text-primary m-0 fs-4 fs-md-2">
         <i class="fa-solid fa-map-location-dot me-2"></i>แผนผังจุดบริการอิเล็กทรอนิกส์ สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ
       </h2>
-      <!-- เปลี่ยนลิงก์ให้เปิดไฟล์ fixpoint.html บน GitHub -->
-      <a href="fixpoint.html" class="btn btn-outline-secondary btn-sm shadow-sm">
-        <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
-      </a>
+      <button type="button" onclick="openAdminModal()" class="btn btn-outline-secondary btn-sm shadow-sm">
+        <i class="fa-solid fa-lock me-1"></i> กำหนดพิกัดจุด (เฉพาะเจ้าหน้าที่)
+      </button>
     </div>
     <p class="text-muted mb-4">เลื่อนเมาส์สำรวจจุดบริการ และคลิกพื้นที่จุดบริการบนภาพผัง เพื่อดูรายละเอียดสถานที่บริการและข้อมูลติดต่อ</p>
 
@@ -161,7 +151,7 @@
     </div>
   </div>
 
-  <!-- หน้าต่างป๊อปอัพแสดงรายละเอียด -->
+  <!-- หน้าต่างป๊อปอัพแสดงรายละเอียดจุดบริการ -->
   <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content glass-modal">
@@ -193,19 +183,67 @@
     </div>
   </div>
 
+  <!-- หน้าต่างยืนยันรหัสผ่านเจ้าหน้าที่ -->
+  <div class="modal fade" id="adminLoginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content glass-modal">
+        <div class="glass-header d-flex justify-content-between align-items-center py-3 px-4">
+          <h6 class="modal-title fw-bold m-0"><i class="fa-solid fa-user-shield me-2"></i>เฉพาะเจ้าหน้าที่</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="glass-body p-4 text-center">
+          <p class="text-muted small mb-3">กรุณากรอกรหัสผ่านเพื่อเข้าสู่หน้ากำหนดพิกัดจุดบริการ</p>
+          <input type="password" id="adminPasswordInput" class="form-control text-center mb-2" placeholder="กรอกรหัสผ่าน..." onkeypress="if(event.key === 'Enter') verifyAdmin()">
+          <div id="loginError" class="text-danger small mb-2" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation me-1"></i>รหัสผ่านไม่ถูกต้อง
+          </div>
+          <button type="button" class="btn btn-primary w-100 mt-2 fw-medium" onclick="verifyAdmin()">
+            <i class="fa-solid fa-right-to-bracket me-1"></i> เข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-iyWcolWlSrmb8qN0GvRY6REqAIbCgKB7RYmHp5tqNRej2VO_kE6xUe-Acl9djm2k/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfiaGY-k78B2CMIBlouTHyRuJBlVJ52kTU3l6KBJZ8CRmMnYWoluLlnVeqIGkP5Cyt/exec';
+    const ADMIN_PASS = 'Dol1234';
 
     let infoModal;
+    let adminModal;
 
     document.addEventListener('DOMContentLoaded', function() {
       infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+      adminModal = new bootstrap.Modal(document.getElementById('adminLoginModal'));
       loadMapData();
     });
+
+    function openAdminModal() {
+      if (sessionStorage.getItem('dolAdminAuth') === ADMIN_PASS) {
+        window.location.href = 'fixpoint.html';
+        return;
+      }
+      document.getElementById('adminPasswordInput').value = '';
+      document.getElementById('loginError').style.display = 'none';
+      adminModal.show();
+      setTimeout(() => document.getElementById('adminPasswordInput').focus(), 400);
+    }
+
+    function verifyAdmin() {
+      const input = document.getElementById('adminPasswordInput').value.trim();
+      if (input === ADMIN_PASS) {
+        sessionStorage.setItem('dolAdminAuth', ADMIN_PASS);
+        adminModal.hide();
+        window.location.href = 'fixpoint.html';
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('adminPasswordInput').select();
+      }
+    }
 
     async function loadMapData() {
       try {
