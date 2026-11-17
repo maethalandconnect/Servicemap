@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>กำหนดพิกัดและขนาดจุดบริการ</title>
+  <title>กำหนดพิกัดและขนาดจุดบริการ (เฉพาะเจ้าหน้าที่)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
     .map-wrapper { position: relative; display: inline-block; width: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; background-color: #e9ecef; user-select: none; }
     .map-image { width: 100%; height: auto; display: block; pointer-events: none; }
     
-    /* การ์ดกำหนดจุด สามารถลากและปรับขนาดได้ */
     .fix-hotspot {
       position: absolute;
       border: 2px dashed #0d6efd;
@@ -41,7 +40,6 @@
       pointer-events: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    /* Handle สำหรับปรับขนาด */
     .resize-handle {
       position: absolute;
       width: 12px;
@@ -64,22 +62,69 @@
       padding: 20px;
       margin-bottom: 20px;
     }
-    #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+    #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+    
+    /* หน้าจอล็อกสำหรับเจ้าหน้าที่ */
+    #authScreen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .auth-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
+  <!-- หน้าจอยืนยันตัวตนเจ้าหน้าที่ (ป้องกันการเข้าผ่านลิงก์โดยตรง) -->
+  <div id="authScreen">
+    <div class="auth-card">
+      <div class="mb-3 text-primary">
+        <i class="fa-solid fa-user-lock fa-3x"></i>
+      </div>
+      <h5 class="fw-bold mb-2">พื้นที่เฉพาะเจ้าหน้าที่</h5>
+      <p class="text-muted small mb-3">กรุณากรอกรหัสผ่านเพื่อใช้งานระบบกำหนดพิกัดจุดบริการ</p>
+      <input type="password" id="directPassInput" class="form-control text-center mb-2" placeholder="รหัสผ่านเจ้าหน้าที่..." onkeypress="if(event.key === 'Enter') checkDirectAuth()">
+      <div id="directAuthError" class="text-danger small mb-2" style="display: none;">
+        <i class="fa-solid fa-circle-exclamation me-1"></i>รหัสผ่านไม่ถูกต้อง
+      </div>
+      <button class="btn btn-primary w-100 mt-2 mb-2" onclick="checkDirectAuth()">
+        <i class="fa-solid fa-unlock-keyhole me-1"></i> ยืนยันรหัสผ่าน
+      </button>
+      <a href="index.html" class="btn btn-link btn-sm text-secondary text-decoration-none">
+        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
+      </a>
+    </div>
+  </div>
+
+  <!-- หน้าจอโหลดข้อมูล -->
   <div id="loadingSpinner">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
     <p class="mt-3 text-secondary fw-bold" id="spinnerText">กำลังโหลดข้อมูลจุดบริการ...</p>
   </div>
 
-  <div class="container my-4">
+  <!-- เนื้อหาหลัก (ซ่อนไว้จนกว่าจะผ่านการยืนยันตัวตน) -->
+  <div class="container my-4" id="mainContent" style="display: none;">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-      <!-- ปรับลิงก์กลับไปที่ไฟล์ index.html บน GitHub -->
-      <a href="index.html" class="btn btn-outline-primary btn-sm">
-        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
-      </a>
+      <div class="d-flex gap-2">
+        <a href="index.html" class="btn btn-outline-primary btn-sm">
+          <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
+        </a>
+        <button class="btn btn-outline-danger btn-sm" onclick="logoutAdmin()">
+          <i class="fa-solid fa-right-from-bracket me-1"></i> ออกจากระบบ
+        </button>
+      </div>
       <h3 class="fw-bold text-primary m-0 fs-5 fs-md-3">
         <i class="fa-solid fa-crosshairs me-2"></i>เครื่องมือจัดวางและปรับขนาดพิกัดจุด
       </h3>
@@ -103,17 +148,45 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ====================================================================
-    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่ (ลิงก์เดียวกับหน้า index.html)
+    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwE27-YSTrPriHJzEYtOxFtTHadUdMkkFwfgnl9I5TBBfh_R9flTQincq657CLZlSD/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfiaGY-k78B2CMIBlouTHyRuJBlVJ52kTU3l6KBJZ8CRmMnYWoluLlnVeqIGkP5Cyt/exec';
+    const ADMIN_PASS = 'Dol1234';
 
     let globalHotspots = [];
 
     document.addEventListener('DOMContentLoaded', function() {
-      loadFixMapData();
+      // ตรวจสอบว่าเคยใส่รหัสผ่านจากหน้า index.html มาหรือยัง
+      if (sessionStorage.getItem('dolAdminAuth') === ADMIN_PASS) {
+        unlockPage();
+      } else {
+        document.getElementById('directPassInput').focus();
+      }
     });
 
-    // ดึงข้อมูลพิกัดจาก Google Sheets ผ่าน Fetch API
+    function checkDirectAuth() {
+      const val = document.getElementById('directPassInput').value.trim();
+      if (val === ADMIN_PASS) {
+        sessionStorage.setItem('dolAdminAuth', ADMIN_PASS);
+        unlockPage();
+      } else {
+        document.getElementById('directAuthError').style.display = 'block';
+        document.getElementById('directPassInput').select();
+      }
+    }
+
+    function unlockPage() {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('loadingSpinner').style.display = 'flex';
+      loadFixMapData();
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('dolAdminAuth');
+      window.location.href = 'index.html';
+    }
+
     async function loadFixMapData() {
       try {
         const response = await fetch(SCRIPT_URL);
@@ -151,7 +224,6 @@
     function makeInteractive(element, spotData) {
       const handle = element.querySelector('.resize-handle');
       
-      // ลากเพื่อย้ายตำแหน่ง (Drag to move)
       element.addEventListener('mousedown', function(e) {
         if (e.target === handle) return;
         e.preventDefault();
@@ -200,7 +272,6 @@
         document.addEventListener('mouseup', closeDragElement);
       });
 
-      // ดึงจุดมุมขวาล่างเพื่อปรับขนาด (Resize handle)
       handle.addEventListener('mousedown', function(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -250,7 +321,6 @@
       });
     }
 
-    // บันทึกพิกัดและขนาดกลับไปยัง Google Sheets ผ่าน POST Request
     async function saveAllCoords() {
       const payload = globalHotspots.map(spot => ({
         rowIndex: spot.rowIndex,
@@ -266,7 +336,6 @@
       spinner.style.display = 'flex';
 
       try {
-        // ใช้ Content-Type: text/plain เพื่อหลีกเลี่ยงปัญหา CORS Preflight กับ Google Apps Script
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
           headers: {
@@ -274,6 +343,7 @@
           },
           body: JSON.stringify({
             action: 'saveCoords',
+            password: sessionStorage.getItem('dolAdminAuth') || '',
             coordsList: payload
           })
         });
