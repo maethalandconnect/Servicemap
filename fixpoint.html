@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>กำหนดพิกัดและขนาดจุดบริการ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Prompt', sans-serif; background-color: #f4f6f9; color: #333; }
+    .map-wrapper { position: relative; display: inline-block; width: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; background-color: #e9ecef; user-select: none; }
+    .map-image { width: 100%; height: auto; display: block; pointer-events: none; }
+    
+    /* การ์ดกำหนดจุด สามารถลากและปรับขนาดได้ */
+    .fix-hotspot {
+      position: absolute;
+      border: 2px dashed #0d6efd;
+      background-color: rgba(13, 110, 253, 0.25);
+      cursor: move;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .fix-hotspot:hover, .fix-hotspot.active {
+      border-color: #dc3545;
+      background-color: rgba(220, 53, 69, 0.2);
+      z-index: 100;
+    }
+    .fix-badge {
+      background: rgba(13, 110, 253, 0.9);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    /* Handle สำหรับปรับขนาด */
+    .resize-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #0d6efd;
+      border: 2px solid white;
+      border-radius: 50%;
+      bottom: -6px;
+      right: -6px;
+      cursor: nwse-resize;
+      z-index: 101;
+    }
+    .fix-hotspot:hover .resize-handle {
+      background: #dc3545;
+    }
+    .control-panel {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+  </style>
+</head>
+<body>
+
+  <div id="loadingSpinner">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <p class="mt-3 text-secondary fw-bold" id="spinnerText">กำลังโหลดข้อมูลจุดบริการ...</p>
+  </div>
+
+  <div class="container my-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <!-- ปรับลิงก์กลับไปที่ไฟล์ index.html บน GitHub -->
+      <a href="index.html" class="btn btn-outline-primary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
+      </a>
+      <h3 class="fw-bold text-primary m-0 fs-5 fs-md-3">
+        <i class="fa-solid fa-crosshairs me-2"></i>เครื่องมือจัดวางและปรับขนาดพิกัดจุด
+      </h3>
+      <button class="btn btn-success btn-sm btn-md-normal" onclick="saveAllCoords()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกพิกัดและขนาด
+      </button>
+    </div>
+
+    <div class="control-panel text-center">
+      <p class="text-muted m-0">ลากย้ายกล่องเพื่อเปลี่ยนตำแหน่ง หรือใช้จุดสีน้ำเงินมุมขวาล่างของกล่องเพื่อ <strong>ลด/ขยายขนาด</strong> ได้อย่างอิสระ แล้วกดบันทึก</p>
+    </div>
+
+    <div class="text-center">
+      <div class="map-wrapper" id="mapWrapper">
+        <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ">
+        <div id="fixHotspotContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ====================================================================
+    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่ (ลิงก์เดียวกับหน้า index.html)
+    // ====================================================================
+    const SCRIPT_URL = 'ใส่_URL_เว็บแอปของ_GOOGLE_APPS_SCRIPT_ที่นี่';
+
+    let globalHotspots = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadFixMapData();
+    });
+
+    // ดึงข้อมูลพิกัดจาก Google Sheets ผ่าน Fetch API
+    async function loadFixMapData() {
+      try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        initFixMap(data);
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message);
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+    }
+
+    function initFixMap(data) {
+      if (data.mapUrl) document.getElementById('mainMap').src = data.mapUrl;
+      globalHotspots = data.hotspots || [];
+      const container = document.getElementById('fixHotspotContainer');
+      container.innerHTML = '';
+
+      globalHotspots.forEach((spot) => {
+        const div = document.createElement('div');
+        div.className = 'fix-hotspot';
+        div.style.top = spot.coords.top + '%';
+        div.style.left = spot.coords.left + '%';
+        div.style.width = spot.coords.width + '%';
+        div.style.height = spot.coords.height + '%';
+        div.innerHTML = `<span class="fix-badge">${spot.name}</span><div class="resize-handle"></div>`;
+
+        makeInteractive(div, spot);
+        container.appendChild(div);
+      });
+
+      document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    function makeInteractive(element, spotData) {
+      const handle = element.querySelector('.resize-handle');
+      
+      // ลากเพื่อย้ายตำแหน่ง (Drag to move)
+      element.addEventListener('mousedown', function(e) {
+        if (e.target === handle) return;
+        e.preventDefault();
+        
+        const wrapper = document.getElementById('mapWrapper');
+        let startX = e.clientX;
+        let startY = e.clientY;
+        let startLeft = element.offsetLeft;
+        let startTop = element.offsetTop;
+
+        element.classList.add('active');
+
+        function elementDrag(e) {
+          e.preventDefault();
+          let wrapperWidth = wrapper.clientWidth;
+          let wrapperHeight = wrapper.clientHeight;
+
+          let dx = e.clientX - startX;
+          let dy = e.clientY - startY;
+
+          let newLeftPx = startLeft + dx;
+          let newTopPx = startTop + dy;
+
+          let leftPercent = (newLeftPx / wrapperWidth) * 100;
+          let topPercent = (newTopPx / wrapperHeight) * 100;
+
+          if (leftPercent < 0) leftPercent = 0;
+          if (topPercent < 0) topPercent = 0;
+          if (leftPercent + spotData.coords.width > 100) leftPercent = 100 - spotData.coords.width;
+          if (topPercent + spotData.coords.height > 100) topPercent = 100 - spotData.coords.height;
+
+          element.style.left = leftPercent + '%';
+          element.style.top = topPercent + '%';
+
+          spotData.coords.left = parseFloat(leftPercent.toFixed(2));
+          spotData.coords.top = parseFloat(topPercent.toFixed(2));
+        }
+
+        function closeDragElement() {
+          element.classList.remove('active');
+          document.removeEventListener('mousemove', elementDrag);
+          document.removeEventListener('mouseup', closeDragElement);
+        }
+
+        document.addEventListener('mousemove', elementDrag);
+        document.addEventListener('mouseup', closeDragElement);
+      });
+
+      // ดึงจุดมุมขวาล่างเพื่อปรับขนาด (Resize handle)
+      handle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const wrapper = document.getElementById('mapWrapper');
+        let startX = e.clientX;
+        let startY = e.clientY;
+        let startWidth = element.offsetWidth;
+        let startHeight = element.offsetHeight;
+
+        element.classList.add('active');
+
+        function elementResize(e) {
+          e.preventDefault();
+          let wrapperWidth = wrapper.clientWidth;
+          let wrapperHeight = wrapper.clientHeight;
+
+          let dw = e.clientX - startX;
+          let dh = e.clientY - startY;
+
+          let newWidthPx = startWidth + dw;
+          let newHeightPx = startHeight + dh;
+
+          let widthPercent = (newWidthPx / wrapperWidth) * 100;
+          let heightPercent = (newHeightPx / wrapperHeight) * 100;
+
+          if (widthPercent < 3) widthPercent = 3;
+          if (heightPercent < 3) heightPercent = 3;
+          if (spotData.coords.left + widthPercent > 100) widthPercent = 100 - spotData.coords.left;
+          if (spotData.coords.top + heightPercent > 100) heightPercent = 100 - spotData.coords.top;
+
+          element.style.width = widthPercent + '%';
+          element.style.height = heightPercent + '%';
+
+          spotData.coords.width = parseFloat(widthPercent.toFixed(2));
+          spotData.coords.height = parseFloat(heightPercent.toFixed(2));
+        }
+
+        function closeResizeElement() {
+          element.classList.remove('active');
+          document.removeEventListener('mousemove', elementResize);
+          document.removeEventListener('mouseup', closeResizeElement);
+        }
+
+        document.addEventListener('mousemove', elementResize);
+        document.addEventListener('mouseup', closeResizeElement);
+      });
+    }
+
+    // บันทึกพิกัดและขนาดกลับไปยัง Google Sheets ผ่าน POST Request
+    async function saveAllCoords() {
+      const payload = globalHotspots.map(spot => ({
+        rowIndex: spot.rowIndex,
+        top: spot.coords.top,
+        left: spot.coords.left,
+        width: spot.coords.width,
+        height: spot.coords.height
+      }));
+
+      const spinner = document.getElementById('loadingSpinner');
+      const spinnerText = document.getElementById('spinnerText');
+      spinnerText.innerText = 'กำลังบันทึกพิกัดและขนาด...';
+      spinner.style.display = 'flex';
+
+      try {
+        // ใช้ Content-Type: text/plain เพื่อหลีกเลี่ยงปัญหา CORS Preflight กับ Google Apps Script
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({
+            action: 'saveCoords',
+            coordsList: payload
+          })
+        });
+
+        const res = await response.json();
+        spinner.style.display = 'none';
+
+        if (res.success) {
+          alert(res.message);
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + res.message);
+        }
+      } catch (err) {
+        spinner.style.display = 'none';
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
