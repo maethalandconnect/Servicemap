@@ -9,7 +9,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
   
   <style>
-    body { font-family: 'Prompt', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; color: #333; overflow-x: hidden; }
+    body { 
+      font-family: 'Prompt', sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      min-height: 100vh; 
+      color: #333; 
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .main-container { flex: 1; }
+    
+    /* โลโก้ส่วนหัว */
+    .header-logo {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    }
+
     .map-wrapper { position: relative; display: inline-block; width: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-radius: 16px; overflow: hidden; background-color: #fff; }
     .map-image { width: 100%; height: auto; display: block; }
     
@@ -249,12 +267,35 @@
       color: #2c3e50;
       line-height: 1.7;
     }
+    /* แสดงภาพจุดบริการแบบต้นฉบับ ไม่ถูกบีบหรือครอบตัด */
+    .carousel-item {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 16px;
+    }
     .carousel-item img {
-      width: 100%;
-      height: 350px;
-      object-fit: cover;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      margin: 0 auto;
+      display: block;
       border-radius: 16px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    /* ส่วนท้าย (Footer) */
+    .site-footer {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255, 255, 255, 0.8);
+      color: #475569;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 14px 0;
+      margin-top: 2rem;
     }
 
     #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
@@ -285,14 +326,41 @@
     <p class="mt-3 text-secondary fw-bold">กำลังโหลดผังจุดบริการ...</p>
   </div>
 
-  <div class="container my-4 text-center">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-primary btn-sm shadow-sm" onclick="toggleNavDrawer()">
+  <div class="container my-4 text-center main-container">
+    <!-- ส่วนหัว (Header) พร้อมโลโก้และชื่อสำนักงาน -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center mb-3 gap-3">
+      <!-- ปุ่มสำหรับหน้าจอมือถือ/แท็บเล็ต -->
+      <div class="d-flex w-100 justify-content-between d-lg-none">
+        <button class="btn btn-primary btn-sm shadow-sm" onclick="toggleNavDrawer()">
+          <i class="fa-solid fa-location-arrow me-1"></i> เมนูนำทางด่วน
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" onclick="openAdminModal()">
+          <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
+        </button>
+      </div>
+
+      <!-- ปุ่มซ้ายสำหรับหน้าจอคอมพิวเตอร์ -->
+      <button class="btn btn-primary btn-sm shadow-sm d-none d-lg-inline-block text-nowrap" onclick="toggleNavDrawer()">
         <i class="fa-solid fa-location-arrow me-1"></i> เมนูนำทางด่วน
       </button>
-      <h2 class="fw-bold text-primary m-0 fs-4 fs-md-2"><i class="fa-solid fa-map-location-dot me-2"></i>แผนที่จุดบริการ</h2>
-      <a href="fixpoint.html" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด</a>
+
+      <!-- โลโก้สำนักงานและข้อความส่วนหัว -->
+      <div class="d-flex align-items-center justify-content-center gap-3">
+        <img src="https://lh3.googleusercontent.com/d/1O5Ek4U3T-rpZSKs51IIUUnzFUsKVBu74" 
+             onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=1O5Ek4U3T-rpZSKs51IIUUnzFUsKVBu74&sz=w300';" 
+             alt="โลโก้สำนักงานที่ดิน" 
+             class="header-logo">
+        <h2 class="fw-bold text-primary m-0 fs-5 fs-md-4 text-start text-md-center">
+          แผนผังจุดบริการอิเล็กทรอนิกส์ สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ
+        </h2>
+      </div>
+
+      <!-- ปุ่มขวาสำหรับหน้าจอคอมพิวเตอร์ -->
+      <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm d-none d-lg-inline-block text-nowrap" onclick="openAdminModal()">
+        <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
+      </button>
     </div>
+
     <p class="text-muted mb-4">คลิกปุ่มลูกศรด้านซ้ายของหน้าจอเพื่อเลือกเมนูนำทาง หรือคลิกพื้นที่จุดบริการบนภาพผังเพื่อดูรายละเอียด</p>
 
     <div class="map-wrapper" id="mapWrapper">
@@ -310,7 +378,36 @@
     </div>
   </div>
 
-  <!-- Modal Glassmorphism 3D -->
+  <!-- ส่วนท้าย (Footer) -->
+  <footer class="site-footer text-center">
+    <div class="container">
+      จัดทำโดย สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ
+    </div>
+  </footer>
+
+  <!-- Modal ตรวจสอบรหัสผ่านสำหรับปุ่มตั้งค่าพิกัด -->
+  <div class="modal fade" id="adminPassModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content glass-modal">
+        <div class="glass-header d-flex justify-content-between align-items-center py-3 px-4">
+          <h6 class="modal-title fw-bold m-0"><i class="fa-solid fa-lock me-2"></i>สำหรับเจ้าหน้าที่</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="glass-body p-4 text-center">
+          <p class="text-secondary small mb-3">กรุณากรอกรหัสผ่านเพื่อเข้าสู่หน้ากำหนดพิกัดจุดบริการ</p>
+          <input type="password" id="adminPassInput" class="form-control text-center mb-2" placeholder="รหัสผ่านเจ้าหน้าที่" onkeydown="if(event.key === 'Enter') checkAdminPassword()">
+          <div id="adminPassError" class="text-danger small mb-2" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation me-1"></i>รหัสผ่านไม่ถูกต้อง
+          </div>
+          <button type="button" class="btn btn-primary w-100 mt-2" onclick="checkAdminPassword()">
+            <i class="fa-solid fa-right-to-bracket me-1"></i> เข้าสู่หน้าตั้งค่าพิกัด
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Glassmorphism 3D แสดงรายละเอียดจุดบริการ -->
   <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content glass-modal">
@@ -343,13 +440,16 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0pChAIg94KvDimHwrmqIiTWbXLVmhDq_WVqbFegjdDhpJJwKJQ5TwePLLMAQAR1O-/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQ09nJnxY9xkaxlbRDOEpf0abjpWnF0PfgrSJWaZUW88uSYlsIqGSCGB2Nf2Sa5Msb/exec';
+    const ADMIN_PASS = 'Dol1234';
 
     let infoModal;
+    let adminPassModal;
     let allHotspots = [];
 
     document.addEventListener('DOMContentLoaded', function() {
       infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+      adminPassModal = new bootstrap.Modal(document.getElementById('adminPassModal'));
       loadMapData();
     });
 
@@ -357,8 +457,27 @@
       document.getElementById('navDrawer').classList.toggle('open');
     }
 
+    // เปิดป๊อปอัพถามรหัสผ่านเมื่อกดปุ่ม "กำหนดพิกัดจุด"
+    function openAdminModal() {
+      document.getElementById('adminPassInput').value = '';
+      document.getElementById('adminPassError').style.display = 'none';
+      adminPassModal.show();
+      setTimeout(() => document.getElementById('adminPassInput').focus(), 400);
+    }
+
+    // ตรวจสอบรหัสผ่านก่อนไปยังหน้า fixpoint.html
+    function checkAdminPassword() {
+      const inputPass = document.getElementById('adminPassInput').value.trim();
+      if (inputPass === ADMIN_PASS) {
+        sessionStorage.setItem('dol_admin_pass', inputPass);
+        adminPassModal.hide();
+        window.location.href = 'fixpoint.html';
+      } else {
+        document.getElementById('adminPassError').style.display = 'block';
+      }
+    }
+
     async function loadMapData() {
-      // รองรับทั้งบน GitHub Pages (Fetch API) และใน Google Apps Script
       if (typeof google !== 'undefined' && google.script && google.script.run && SCRIPT_URL.includes('ใส่_URL')) {
         google.script.run.withSuccessHandler(renderMap).withFailureHandler(err => {
           alert('เกิดข้อผิดพลาด: ' + err);
@@ -444,18 +563,15 @@
 
     // ฟังก์ชันแสดงหมุดเด้งไปยังจุดบริการที่เลือก
     function focusOnSpot(spot, index) {
-      // ล้างสถานะปุ่มและกรอบเดิม
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
 
-      // ไฮไลท์ปุ่มและกรอบที่เลือก
       const activeBtn = document.getElementById('nav-btn-' + index);
       if (activeBtn) activeBtn.classList.add('active');
 
       const activeBox = document.getElementById('hotspot-box-' + index);
       if (activeBox) activeBox.classList.add('active-target');
 
-      // คำนวณจุดกึ่งกลางของพื้นที่จุดบริการเพื่อวางหมุดเด้ง
       const centerTop = spot.coords.top + (spot.coords.height / 2);
       const centerLeft = spot.coords.left + (spot.coords.width / 2);
 
@@ -467,15 +583,12 @@
       pinWrapper.style.left = centerLeft + '%';
       pinWrapper.style.display = 'block';
 
-      // เมื่อคลิกที่หมุดเด้ง ให้เปิดรายละเอียดจุดบริการได้ด้วย
       pinWrapper.onclick = () => showDetail(spot);
 
-      // ปิดแถบเมนูอัตโนมัติบนหน้าจอมือถือเพื่อให้เห็นแผนผังชัดเจน
       if (window.innerWidth < 768) {
         document.getElementById('navDrawer').classList.remove('open');
       }
 
-      // เลื่อนหน้าจอไปยังตำแหน่งหมุดอย่างนุ่มนวล
       pinWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
