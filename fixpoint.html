@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>กำหนดพิกัดและขนาดจุดบริการ (เฉพาะเจ้าหน้าที่)</title>
+  <title>กำหนดพิกัดและขนาดจุดบริการ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
     .map-wrapper { position: relative; display: inline-block; width: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; background-color: #e9ecef; user-select: none; }
     .map-image { width: 100%; height: auto; display: block; pointer-events: none; }
     
+    /* การ์ดกำหนดจุด สามารถลากและปรับขนาดได้ */
     .fix-hotspot {
       position: absolute;
       border: 2px dashed #0d6efd;
@@ -40,6 +41,7 @@
       pointer-events: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
+    /* Handle สำหรับปรับขนาด */
     .resize-handle {
       position: absolute;
       width: 12px;
@@ -62,74 +64,41 @@
       padding: 20px;
       margin-bottom: 20px;
     }
-    #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-    
-    /* หน้าจอล็อกสำหรับเจ้าหน้าที่ */
-    #authScreen {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
-    .auth-card {
+    .nav-table-card {
       background: white;
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-top: 28px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
     }
+    .form-check-input {
+      width: 1.25em;
+      height: 1.25em;
+      cursor: pointer;
+    }
+    #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
   </style>
 </head>
 <body>
 
-  <!-- หน้าจอยืนยันตัวตนเจ้าหน้าที่ (ป้องกันการเข้าผ่านลิงก์โดยตรง) -->
-  <div id="authScreen">
-    <div class="auth-card">
-      <div class="mb-3 text-primary">
-        <i class="fa-solid fa-user-lock fa-3x"></i>
-      </div>
-      <h5 class="fw-bold mb-2">พื้นที่เฉพาะเจ้าหน้าที่</h5>
-      <p class="text-muted small mb-3">กรุณากรอกรหัสผ่านเพื่อใช้งานระบบกำหนดพิกัดจุดบริการ</p>
-      <input type="password" id="directPassInput" class="form-control text-center mb-2" placeholder="รหัสผ่านเจ้าหน้าที่..." onkeypress="if(event.key === 'Enter') checkDirectAuth()">
-      <div id="directAuthError" class="text-danger small mb-2" style="display: none;">
-        <i class="fa-solid fa-circle-exclamation me-1"></i>รหัสผ่านไม่ถูกต้อง
-      </div>
-      <button class="btn btn-primary w-100 mt-2 mb-2" onclick="checkDirectAuth()">
-        <i class="fa-solid fa-unlock-keyhole me-1"></i> ยืนยันรหัสผ่าน
-      </button>
-      <a href="index.html" class="btn btn-link btn-sm text-secondary text-decoration-none">
-        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
-      </a>
-    </div>
-  </div>
-
-  <!-- หน้าจอโหลดข้อมูล -->
   <div id="loadingSpinner">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
     <p class="mt-3 text-secondary fw-bold" id="spinnerText">กำลังโหลดข้อมูลจุดบริการ...</p>
   </div>
 
-  <!-- เนื้อหาหลัก (ซ่อนไว้จนกว่าจะผ่านการยืนยันตัวตน) -->
-  <div class="container my-4" id="mainContent" style="display: none;">
+  <div class="container my-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-      <div class="d-flex gap-2">
-        <a href="index.html" class="btn btn-outline-primary btn-sm">
-          <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
-        </a>
-        <button class="btn btn-outline-danger btn-sm" onclick="logoutAdmin()">
-          <i class="fa-solid fa-right-from-bracket me-1"></i> ออกจากระบบ
-        </button>
-      </div>
+      <a href="index.html" class="btn btn-outline-primary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
+      </a>
       <h3 class="fw-bold text-primary m-0 fs-5 fs-md-3">
         <i class="fa-solid fa-crosshairs me-2"></i>เครื่องมือจัดวางและปรับขนาดพิกัดจุด
       </h3>
       <button class="btn btn-success btn-sm btn-md-normal" onclick="saveAllCoords()">
-        <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกพิกัดและขนาด
+        <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกพิกัดและการตั้งค่า
       </button>
     </div>
 
@@ -143,50 +112,53 @@
         <div id="fixHotspotContainer"></div>
       </div>
     </div>
+
+    <!-- ตารางเช็คบ็อกซ์ตั้งค่าการแสดงปุ่มนำทางด้านล่างผัง -->
+    <div class="nav-table-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+          <h5 class="fw-bold text-primary m-0"><i class="fa-solid fa-list-check me-2"></i>ตั้งค่าการแสดงปุ่มนำทาง (หน้าแรก)</h5>
+          <small class="text-muted">ติ๊กเลือกจุดบริการจากคอลัมน์ B ที่ต้องการให้แสดงเป็นปุ่มนำทางในแถบเมนูด้านข้างของหน้า index</small>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="saveAllCoords()">
+          <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกการตั้งค่าทั้งหมด
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 70px;" class="text-center">
+                <input type="checkbox" class="form-check-input" id="checkAllNav" onchange="toggleAllNav(this.checked)" title="เลือก/ยกเลิกทั้งหมด">
+              </th>
+              <th style="width: 100px;">ลำดับ/รหัส</th>
+              <th>ชื่อจุดบริการ / ปุ่มนำทาง (คอลัมน์ B)</th>
+              <th style="width: 160px;" class="text-center">สถานะปุ่มนำทาง</th>
+            </tr>
+          </thead>
+          <tbody id="navCheckboxTableBody">
+            <!-- ข้อมูลตารางเช็คบ็อกซ์จะถูกสร้างที่นี่ -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ====================================================================
-    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
+    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่ (ลิงก์เดียวกับหน้า index.html)
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfiaGY-k78B2CMIBlouTHyRuJBlVJ52kTU3l6KBJZ8CRmMnYWoluLlnVeqIGkP5Cyt/exec';
-    const ADMIN_PASS = 'Dol1234';
+    const SCRIPT_URL = 'ใส่_URL_เว็บแอปของ_GOOGLE_APPS_SCRIPT_ที่นี่';
 
     let globalHotspots = [];
 
     document.addEventListener('DOMContentLoaded', function() {
-      // ตรวจสอบว่าเคยใส่รหัสผ่านจากหน้า index.html มาหรือยัง
-      if (sessionStorage.getItem('dolAdminAuth') === ADMIN_PASS) {
-        unlockPage();
-      } else {
-        document.getElementById('directPassInput').focus();
-      }
+      loadFixMapData();
     });
 
-    function checkDirectAuth() {
-      const val = document.getElementById('directPassInput').value.trim();
-      if (val === ADMIN_PASS) {
-        sessionStorage.setItem('dolAdminAuth', ADMIN_PASS);
-        unlockPage();
-      } else {
-        document.getElementById('directAuthError').style.display = 'block';
-        document.getElementById('directPassInput').select();
-      }
-    }
-
-    function unlockPage() {
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'block';
-      document.getElementById('loadingSpinner').style.display = 'flex';
-      loadFixMapData();
-    }
-
-    function logoutAdmin() {
-      sessionStorage.removeItem('dolAdminAuth');
-      window.location.href = 'index.html';
-    }
-
+    // ดึงข้อมูลพิกัดจาก Google Sheets ผ่าน Fetch API
     async function loadFixMapData() {
       try {
         const response = await fetch(SCRIPT_URL);
@@ -206,6 +178,8 @@
       container.innerHTML = '';
 
       globalHotspots.forEach((spot) => {
+        if (spot.showNav === undefined) spot.showNav = true;
+
         const div = document.createElement('div');
         div.className = 'fix-hotspot';
         div.style.top = spot.coords.top + '%';
@@ -218,12 +192,65 @@
         container.appendChild(div);
       });
 
+      renderNavTable();
       document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    // สร้างตารางเช็คบ็อกซ์เลือกปุ่มนำทางด้านล่างแผนผัง
+    function renderNavTable() {
+      const tbody = document.getElementById('navCheckboxTableBody');
+      tbody.innerHTML = '';
+
+      globalHotspots.forEach((spot, index) => {
+        const isChecked = spot.showNav !== false;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center">
+            <input type="checkbox" class="form-check-input spot-nav-checkbox" data-index="${index}" ${isChecked ? 'checked' : ''} onchange="updateSpotNav(${index}, this.checked)">
+          </td>
+          <td class="text-muted fw-semibold">${spot.id || (index + 1)}</td>
+          <td class="fw-medium">${spot.name}</td>
+          <td class="text-center" id="nav-status-${index}">
+            ${isChecked 
+              ? '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i class="fa-solid fa-eye me-1"></i>แสดงปุ่มนำทาง</span>' 
+              : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2"><i class="fa-solid fa-eye-slash me-1"></i>ซ่อนปุ่ม</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      syncCheckAllHeader();
+    }
+
+    function updateSpotNav(index, isChecked) {
+      globalHotspots[index].showNav = isChecked;
+      const statusCell = document.getElementById('nav-status-' + index);
+      if (statusCell) {
+        statusCell.innerHTML = isChecked
+          ? '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i class="fa-solid fa-eye me-1"></i>แสดงปุ่มนำทาง</span>'
+          : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2"><i class="fa-solid fa-eye-slash me-1"></i>ซ่อนปุ่ม</span>';
+      }
+      syncCheckAllHeader();
+    }
+
+    function toggleAllNav(isChecked) {
+      globalHotspots.forEach((spot, index) => {
+        spot.showNav = isChecked;
+      });
+      renderNavTable();
+    }
+
+    function syncCheckAllHeader() {
+      const checkAll = document.getElementById('checkAllNav');
+      if (!checkAll || globalHotspots.length === 0) return;
+      const allChecked = globalHotspots.every(spot => spot.showNav !== false);
+      checkAll.checked = allChecked;
     }
 
     function makeInteractive(element, spotData) {
       const handle = element.querySelector('.resize-handle');
       
+      // ลากเพื่อย้ายตำแหน่ง (Drag to move)
       element.addEventListener('mousedown', function(e) {
         if (e.target === handle) return;
         e.preventDefault();
@@ -272,6 +299,7 @@
         document.addEventListener('mouseup', closeDragElement);
       });
 
+      // ดึงจุดมุมขวาล่างเพื่อปรับขนาด (Resize handle)
       handle.addEventListener('mousedown', function(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -321,18 +349,23 @@
       });
     }
 
+    // บันทึกพิกัด ขนาด และสถานะปุ่มนำทางกลับไปยัง Google Sheets ผ่าน POST Request
     async function saveAllCoords() {
+      const password = prompt('กรุณากรอกรหัสผ่านเจ้าหน้าที่เพื่อยืนยันการบันทึกข้อมูล:');
+      if (!password) return;
+
       const payload = globalHotspots.map(spot => ({
         rowIndex: spot.rowIndex,
         top: spot.coords.top,
         left: spot.coords.left,
         width: spot.coords.width,
-        height: spot.coords.height
+        height: spot.coords.height,
+        showNav: spot.showNav !== false
       }));
 
       const spinner = document.getElementById('loadingSpinner');
       const spinnerText = document.getElementById('spinnerText');
-      spinnerText.innerText = 'กำลังบันทึกพิกัดและขนาด...';
+      spinnerText.innerText = 'กำลังบันทึกพิกัดและการตั้งค่าปุ่มนำทาง...';
       spinner.style.display = 'flex';
 
       try {
@@ -343,7 +376,7 @@
           },
           body: JSON.stringify({
             action: 'saveCoords',
-            password: sessionStorage.getItem('dolAdminAuth') || '',
+            password: password,
             coordsList: payload
           })
         });
