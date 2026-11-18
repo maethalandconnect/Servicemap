@@ -150,7 +150,7 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่ (ลิงก์เดียวกับหน้า index.html)
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0pChAIg94KvDimHwrmqIiTWbXLVmhDq_WVqbFegjdDhpJJwKJQ5TwePLLMAQAR1O-/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQ09nJnxY9xkaxlbRDOEpf0abjpWnF0PfgrSJWaZUW88uSYlsIqGSCGB2Nf2Sa5Msb/exec';
 
     let globalHotspots = [];
 
@@ -234,7 +234,7 @@
     }
 
     function toggleAllNav(isChecked) {
-      globalHotspots.forEach((spot, index) => {
+      globalHotspots.forEach((spot) => {
         spot.showNav = isChecked;
       });
       renderNavTable();
@@ -351,7 +351,10 @@
 
     // บันทึกพิกัด ขนาด และสถานะปุ่มนำทางกลับไปยัง Google Sheets ผ่าน POST Request
     async function saveAllCoords() {
-      const password = prompt('กรุณากรอกรหัสผ่านเจ้าหน้าที่เพื่อยืนยันการบันทึกข้อมูล:');
+      let password = sessionStorage.getItem('dol_admin_pass');
+      if (!password) {
+        password = prompt('กรุณากรอกรหัสผ่านเจ้าหน้าที่เพื่อยืนยันการบันทึกข้อมูล:');
+      }
       if (!password) return;
 
       const payload = globalHotspots.map(spot => ({
@@ -385,8 +388,10 @@
         spinner.style.display = 'none';
 
         if (res.success) {
+          sessionStorage.setItem('dol_admin_pass', password);
           alert(res.message);
         } else {
+          sessionStorage.removeItem('dol_admin_pass');
           alert('เกิดข้อผิดพลาด: ' + res.message);
         }
       } catch (err) {
