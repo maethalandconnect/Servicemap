@@ -53,6 +53,73 @@
       z-index: 10;
     }
 
+    /* เลเยอร์ SVG วาดเส้นลูกศรเชื่อมโยงขั้นตอน (way) */
+    #waySvgOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 25;
+    }
+    .way-animated-line {
+      stroke-dasharray: 12 8;
+      animation: dashFlow 1s linear infinite;
+    }
+    @keyframes dashFlow {
+      to {
+        stroke-dashoffset: -20;
+      }
+    }
+
+    /* ป้ายจุดขั้นตอนบนแผนผัง */
+    .way-point-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 30;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+    .way-point-marker:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+      z-index: 40;
+    }
+    .way-step-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.55);
+    }
+    .way-step-circle.active-step {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.35), 0 4px 14px rgba(217, 119, 6, 0.6);
+      transform: scale(1.15);
+    }
+    .way-step-tag {
+      margin-top: 4px;
+      background: rgba(6, 78, 59, 0.92);
+      color: #fff;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    }
+
     /* ป้ายชื่อลอยตามเคอร์เซอร์เมาส์เมื่อชี้บริเวณการ์ด */
     #cursorTooltip {
       position: fixed;
@@ -71,7 +138,7 @@
       transition: transform 0.05s ease-out;
     }
 
-    /* ================= แถบป๊อปอัพนำทางด้านข้าง (Side Navigation Drawer) ================= */
+    /* ================= 1. แถบป๊อปอัพนำทางด้านซ้าย (สีน้ำเงิน) ================= */
     .nav-drawer {
       position: fixed;
       top: 50%;
@@ -94,14 +161,13 @@
     .nav-drawer.open {
       transform: translate(0, -50%);
     }
-    /* ปุ่มลูกศรซ่อน/แสดงด้านข้างจอ */
     .nav-drawer-toggle {
       position: absolute;
       right: -44px;
       top: 50%;
       transform: translateY(-50%);
       width: 44px;
-      height: 96px;
+      height: 104px;
       background: linear-gradient(135deg, #0d6efd, #0b5ed7);
       color: #fff;
       border: none;
@@ -172,6 +238,131 @@
       box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     }
 
+    /* ================= 2. แถบป๊อปอัพแสดงขั้นตอนด้านขวา (สีเขียวมรกต - ระดับเดียวกัน) ================= */
+    .way-drawer {
+      position: fixed;
+      top: 50%;
+      right: 0;
+      transform: translate(100%, -50%);
+      width: 310px;
+      max-height: 80vh;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: -5px 0 25px rgba(0,0,0,0.18);
+      border-radius: 18px 0 0 18px;
+      z-index: 1050;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(5, 150, 105, 0.25);
+      border-right: none;
+    }
+    .way-drawer.open {
+      transform: translate(0, -50%);
+    }
+    .way-drawer-toggle {
+      position: absolute;
+      left: -44px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 124px;
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: none;
+      border-radius: 14px 0 0 14px;
+      box-shadow: -4px 0 15px rgba(5, 150, 105, 0.35);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .way-drawer-toggle:hover {
+      background: linear-gradient(135deg, #047857, #065f46);
+    }
+    .way-drawer-toggle i {
+      font-size: 18px;
+      transition: transform 0.35s ease;
+    }
+    .way-drawer.open .way-drawer-toggle i {
+      transform: rotate(180deg);
+    }
+    .way-drawer-toggle span {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 1px;
+    }
+    .way-drawer-header {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: white;
+      padding: 14px 16px;
+      border-radius: 17px 0 0 0;
+    }
+    .way-drawer-body {
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .way-step-btn {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1fae5;
+      background: #f0fdf4;
+      color: #064e3b;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .way-step-btn:hover {
+      background: #dcfce7;
+      border-color: #6ee7b7;
+      transform: translateX(-4px);
+    }
+    .way-step-btn.active {
+      background: #059669;
+      border-color: #059669;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+    }
+    .way-step-badge {
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #059669;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .way-step-btn.active .way-step-badge {
+      background: #fff;
+      color: #059669;
+    }
+    .btn-emerald {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: none;
+    }
+    .btn-emerald:hover {
+      background: linear-gradient(135deg, #047857, #065f46);
+      color: #fff;
+    }
+
     /* ================= หมุดเด้ง (Bouncing Pin) บนแผนผัง ================= */
     .bouncing-pin-wrapper {
       position: absolute;
@@ -229,7 +420,7 @@
 
     /* Glassmorphism 3D Modal (กระจกใส) */
     .modal-content.glass-modal {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.6);
@@ -267,7 +458,6 @@
       color: #2c3e50;
       line-height: 1.7;
     }
-    /* แสดงภาพจุดบริการแบบต้นฉบับ ไม่ถูกบีบหรือครอบตัด */
     .carousel-item {
       text-align: center;
       background: rgba(0, 0, 0, 0.03);
@@ -306,7 +496,7 @@
   <!-- Tooltip ลอยตามเคอร์เซอร์ -->
   <div id="cursorTooltip"><i class="fa-solid fa-location-dot me-1 text-warning"></i><span id="tooltipText"></span></div>
 
-  <!-- แถบป๊อปอัพปุ่มนำทางด้านข้างจอ -->
+  <!-- แถบป๊อปอัพปุ่มนำทางด้านซ้ายของจอ (สีน้ำเงิน) -->
   <div class="nav-drawer" id="navDrawer">
     <button class="nav-drawer-toggle" onclick="toggleNavDrawer()" title="เปิด/ปิดเมนูนำทาง">
       <i class="fa-solid fa-chevron-right"></i>
@@ -317,7 +507,34 @@
       <small class="text-white-50" style="font-size: 12px;">กดเลือกจุดบริการเพื่อปักหมุดนำทางบนแผนผัง</small>
     </div>
     <div class="nav-drawer-body" id="navButtonList">
-      <!-- รายการปุ่มนำทางจากคอลัมน์ B จะแสดงที่นี่ -->
+      <!-- รายการปุ่มนำทางจากชีท Data จะแสดงที่นี่ -->
+    </div>
+  </div>
+
+  <!-- แถบป๊อปอัพแสดงขั้นตอนด้านขวาของจอ (สีเขียวมรกต - ระดับเดียวกัน) -->
+  <div class="way-drawer" id="wayDrawer">
+    <button class="way-drawer-toggle" onclick="toggleWayDrawer()" title="เปิด/ปิดแสดงขั้นตอน">
+      <i class="fa-solid fa-chevron-left"></i>
+      <span>แสดงขั้นตอน</span>
+    </button>
+    <div class="way-drawer-header">
+      <h6 class="m-0 fw-bold"><i class="fa-solid fa-route me-2"></i>ขั้นตอนการรับบริการ</h6>
+      <small class="text-white-50" style="font-size: 12px;">แสดงเส้นทางเดินเชื่อมโยงตามลำดับจุด</small>
+    </div>
+    <div class="p-2 border-bottom bg-light">
+      <!-- ตัวเลือกกลุ่มขั้นตอน (แสดงอัตโนมัติหากมีหลายกลุ่มงานในชีท way) -->
+      <select id="wayGroupSelect" class="form-select form-select-sm mb-2" style="display: none;" onchange="onWayGroupChange()"></select>
+      <div class="d-flex gap-1">
+        <button class="btn btn-emerald btn-sm flex-grow-1 fw-medium" onclick="showAllWayRoute()">
+          <i class="fa-solid fa-play me-1"></i> แสดงเส้นทางทั้งหมด
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="clearWayRoute()" title="ซ่อนเส้นลูกศร">
+          <i class="fa-solid fa-eraser"></i>
+        </button>
+      </div>
+    </div>
+    <div class="way-drawer-body" id="wayStepList">
+      <!-- รายการขั้นตอนจากชีท way จะแสดงที่นี่ -->
     </div>
   </div>
 
@@ -330,12 +547,15 @@
     <!-- ส่วนหัว (Header) พร้อมโลโก้และชื่อสำนักงาน -->
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center mb-3 gap-3">
       <!-- ปุ่มสำหรับหน้าจอมือถือ/แท็บเล็ต -->
-      <div class="d-flex w-100 justify-content-between d-lg-none">
+      <div class="d-flex w-100 justify-content-between d-lg-none gap-1">
         <button class="btn btn-primary btn-sm shadow-sm" onclick="toggleNavDrawer()">
-          <i class="fa-solid fa-location-arrow me-1"></i> เมนูนำทางด่วน
+          <i class="fa-solid fa-location-arrow me-1"></i> นำทางด่วน
+        </button>
+        <button class="btn btn-emerald btn-sm shadow-sm" onclick="toggleWayDrawer()">
+          <i class="fa-solid fa-route me-1"></i> แสดงขั้นตอน
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" onclick="openAdminModal()">
-          <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
+          <i class="fa-solid fa-gear"></i>
         </button>
       </div>
 
@@ -355,17 +575,29 @@
         </h2>
       </div>
 
-      <!-- ปุ่มขวาสำหรับหน้าจอคอมพิวเตอร์ -->
-      <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm d-none d-lg-inline-block text-nowrap" onclick="openAdminModal()">
-        <i class="fa-solid fa-gear me-1"></i> กำหนดพิกัดจุด
-      </button>
+      <!-- กลุ่มปุ่มขวาสำหรับหน้าจอคอมพิวเตอร์ -->
+      <div class="d-none d-lg-flex align-items-center gap-2 text-nowrap">
+        <button class="btn btn-emerald btn-sm shadow-sm" onclick="toggleWayDrawer()">
+          <i class="fa-solid fa-route me-1"></i> แสดงขั้นตอน
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" onclick="openAdminModal()">
+          <i class="fa-solid fa-gear me-1"></i> ตั้งค่าพิกัด
+        </button>
+      </div>
     </div>
 
-    <p class="text-muted mb-4">คลิกปุ่มลูกศรด้านซ้ายของหน้าจอเพื่อเลือกเมนูนำทาง หรือคลิกพื้นที่จุดบริการบนภาพผังเพื่อดูรายละเอียด</p>
+    <p class="text-muted mb-4">
+      คลิกแถบ <span class="text-primary fw-semibold">“นำทาง”</span> ด้านซ้ายเพื่อค้นหาจุดบริการ หรือแถบ <span class="text-success fw-semibold">“แสดงขั้นตอน”</span> ด้านขวาเพื่อดูเส้นทางเดินตามลำดับ
+    </p>
 
     <div class="map-wrapper" id="mapWrapper">
-      <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ">
+      <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ" onload="redrawCurrentWay()">
       <div id="hotspotContainer"></div>
+      
+      <!-- เลเยอร์ SVG วาดเส้นลูกศรเชื่อมโยงทางเดิน (way) -->
+      <svg id="waySvgOverlay" xmlns="http://www.w3.org/2000/svg"></svg>
+      <!-- เลเยอร์ป้ายตัวเลขลำดับขั้นตอนบนแผนผัง -->
+      <div id="wayMarkerContainer"></div>
       
       <!-- หมุดเด้งแสดงตำแหน่งที่เลือก -->
       <div id="bouncingPinWrapper" class="bouncing-pin-wrapper" title="คลิกเพื่อดูรายละเอียดจุดบริการ">
@@ -385,7 +617,7 @@
     </div>
   </footer>
 
-  <!-- Modal ตรวจสอบรหัสผ่านสำหรับปุ่มตั้งค่าพิกัด -->
+  <!-- Modal ตรวจสอบรหัสผ่านสำหรับเจ้าหน้าที่ (เลือกไปหน้า fixpoint หรือ fixway ได้) -->
   <div class="modal fade" id="adminPassModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content glass-modal">
@@ -394,24 +626,29 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="glass-body p-4 text-center">
-          <p class="text-secondary small mb-3">กรุณากรอกรหัสผ่านเพื่อเข้าสู่หน้ากำหนดพิกัดจุดบริการ</p>
-          <input type="password" id="adminPassInput" class="form-control text-center mb-2" placeholder="รหัสผ่านเจ้าหน้าที่" onkeydown="if(event.key === 'Enter') checkAdminPassword()">
+          <p class="text-secondary small mb-3">กรุณากรอกรหัสผ่านเจ้าหน้าที่เพื่อตั้งค่าพิกัด</p>
+          <input type="password" id="adminPassInput" class="form-control text-center mb-2" placeholder="รหัสผ่านเจ้าหน้าที่" onkeydown="if(event.key === 'Enter') checkAdminPassword('fixpoint.html')">
           <div id="adminPassError" class="text-danger small mb-2" style="display: none;">
             <i class="fa-solid fa-circle-exclamation me-1"></i>รหัสผ่านไม่ถูกต้อง
           </div>
-          <button type="button" class="btn btn-primary w-100 mt-2" onclick="checkAdminPassword()">
-            <i class="fa-solid fa-right-to-bracket me-1"></i> เข้าสู่หน้าตั้งค่าพิกัด
-          </button>
+          <div class="d-grid gap-2 mt-3">
+            <button type="button" class="btn btn-primary btn-sm py-2" onclick="checkAdminPassword('fixpoint.html')">
+              <i class="fa-solid fa-crosshairs me-1"></i> กำหนดพิกัดจุดบริการ (Data)
+            </button>
+            <button type="button" class="btn btn-emerald btn-sm py-2" onclick="checkAdminPassword('fixway.html')">
+              <i class="fa-solid fa-route me-1"></i> กำหนดพิกัดเส้นทางขั้นตอน (Way)
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Glassmorphism 3D แสดงรายละเอียดจุดบริการ -->
+  <!-- Modal Glassmorphism 3D แสดงรายละเอียดจุดบริการ / รายละเอียดขั้นตอน -->
   <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content glass-modal">
-        <div class="glass-header d-flex justify-content-between align-items-center">
+        <div class="glass-header d-flex justify-content-between align-items-center" id="infoModalHeader">
           <h5 class="modal-title fw-bold m-0"><i class="fa-solid fa-circle-info me-2"></i><span id="modalTitle"></span></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -426,8 +663,8 @@
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
             </button>
           </div>
-          <div class="glass-description-card">
-            <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-align-left me-2"></i>รายละเอียดจุดบริการ</h6>
+          <div class="glass-description-card" id="modalDescCard">
+            <h6 class="fw-bold text-primary mb-2" id="modalDescTitle"><i class="fa-solid fa-align-left me-2"></i>รายละเอียด</h6>
             <div id="modalDescription"></div>
           </div>
         </div>
@@ -440,24 +677,42 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQ09nJnxY9xkaxlbRDOEpf0abjpWnF0PfgrSJWaZUW88uSYlsIqGSCGB2Nf2Sa5Msb/exec';
+    const SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ7hirUskYuBtH718wXRvKmXCVoluvnw7JX0eH7am01xC7HXOCCE5o3CNCICgwbdZSKovnVkoC2O7ii4aUdPpVomhywXYIfA4P00NWe1GOdaRz59qUdK-al9fCCgl5CNaHxiG5DouKbSDZ0N5NpZvMmtrbzcUgSmmiPPZccoStEd7xg21tgo-24DEPRsheqR2CoGG4G3opdmSk2fADY2D1n4P9zdLnKmhbkjvIIbnW2mz-PdewK3Hqv5MSC5hcrVSxxLJSI7RGoRQubkwIQHU6gMzx3oA&lib=Mmm8-qymyUGD82y4vPGR3yvwLva-v4JqO';
     const ADMIN_PASS = 'Dol1234';
 
     let infoModal;
     let adminPassModal;
     let allHotspots = [];
+    let allWays = [];
+    let filteredWays = [];
+    let activeWayStepLimit = null; // null = ยังไม่แสดง, 0 = แสดงทั้งหมด, N = แสดงถึงขั้นตอนที่ N
 
     document.addEventListener('DOMContentLoaded', function() {
       infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
       adminPassModal = new bootstrap.Modal(document.getElementById('adminPassModal'));
       loadMapData();
+      window.addEventListener('resize', redrawCurrentWay);
     });
 
     function toggleNavDrawer() {
-      document.getElementById('navDrawer').classList.toggle('open');
+      const nav = document.getElementById('navDrawer');
+      const way = document.getElementById('wayDrawer');
+      nav.classList.toggle('open');
+      if (nav.classList.contains('open')) {
+        way.classList.remove('open');
+      }
     }
 
-    // เปิดป๊อปอัพถามรหัสผ่านเมื่อกดปุ่ม "กำหนดพิกัดจุด"
+    function toggleWayDrawer() {
+      const way = document.getElementById('wayDrawer');
+      const nav = document.getElementById('navDrawer');
+      way.classList.toggle('open');
+      if (way.classList.contains('open')) {
+        nav.classList.remove('open');
+      }
+    }
+
+    // เปิดป๊อปอัพถามรหัสผ่านสำหรับเจ้าหน้าที่
     function openAdminModal() {
       document.getElementById('adminPassInput').value = '';
       document.getElementById('adminPassError').style.display = 'none';
@@ -465,13 +720,13 @@
       setTimeout(() => document.getElementById('adminPassInput').focus(), 400);
     }
 
-    // ตรวจสอบรหัสผ่านก่อนไปยังหน้า fixpoint.html
-    function checkAdminPassword() {
+    // ตรวจสอบรหัสผ่านก่อนไปยังหน้า fixpoint.html หรือ fixway.html
+    function checkAdminPassword(targetPage) {
       const inputPass = document.getElementById('adminPassInput').value.trim();
       if (inputPass === ADMIN_PASS) {
         sessionStorage.setItem('dol_admin_pass', inputPass);
         adminPassModal.hide();
-        window.location.href = 'fixpoint.html';
+        window.location.href = targetPage;
       } else {
         document.getElementById('adminPassError').style.display = 'block';
       }
@@ -500,6 +755,7 @@
     function renderMap(data) {
       if (data.mapUrl) document.getElementById('mainMap').src = data.mapUrl;
       allHotspots = data.hotspots || [];
+      allWays = (data.ways || []).filter(w => w.showWay !== false);
 
       const container = document.getElementById('hotspotContainer');
       const navList = document.getElementById('navButtonList');
@@ -512,7 +768,6 @@
       let navCount = 0;
 
       allHotspots.forEach((spot, index) => {
-        // 1. สร้างพื้นที่คลิกบนผัง
         const div = document.createElement('div');
         div.className = 'hotspot';
         div.id = 'hotspot-box-' + index;
@@ -534,12 +789,11 @@
 
         div.onclick = () => {
           tooltip.style.display = 'none';
-          showDetail(spot);
+          showDetail(spot, 'blue');
         };
 
         container.appendChild(div);
 
-        // 2. สร้างปุ่มนำทางในแถบด้านข้าง (เฉพาะรายการที่ติ๊กเลือกแสดงผล)
         if (spot.showNav !== false && spot.name) {
           navCount++;
           const btn = document.createElement('button');
@@ -558,11 +812,255 @@
         navList.innerHTML = '<div class="text-center text-muted py-4 small">ยังไม่มีรายการปุ่มนำทางที่เลือกไว้</div>';
       }
 
+      // เตรียมรายการขั้นตอนในเมนูด้านขวา (ชีท way)
+      initWayMenu();
+
       document.getElementById('loadingSpinner').style.display = 'none';
     }
 
-    // ฟังก์ชันแสดงหมุดเด้งไปยังจุดบริการที่เลือก
+    // ตั้งค่าเมนูแสดงขั้นตอนด้านขวา
+    function initWayMenu() {
+      const groupSelect = document.getElementById('wayGroupSelect');
+      const groups = [...new Set(allWays.map(w => w.group).filter(g => g !== ''))];
+
+      if (groups.length > 1) {
+        groupSelect.style.display = 'block';
+        groupSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      } else {
+        groupSelect.style.display = 'none';
+      }
+
+      filterWaysBySelectedGroup();
+    }
+
+    function onWayGroupChange() {
+      filterWaysBySelectedGroup();
+      if (activeWayStepLimit !== null) {
+        showAllWayRoute();
+      }
+    }
+
+    function filterWaysBySelectedGroup() {
+      const groupSelect = document.getElementById('wayGroupSelect');
+      if (groupSelect.style.display !== 'none' && groupSelect.value) {
+        filteredWays = allWays.filter(w => w.group === groupSelect.value);
+      } else {
+        filteredWays = [...allWays];
+      }
+
+      filteredWays.sort((a, b) => Number(a.step) - Number(b.step));
+      renderWayStepButtons();
+    }
+
+    function renderWayStepButtons() {
+      const stepList = document.getElementById('wayStepList');
+      stepList.innerHTML = '';
+
+      if (filteredWays.length === 0) {
+        stepList.innerHTML = '<div class="text-center text-muted py-4 small">ยังไม่มีข้อมูลขั้นตอนในชีท way<br>สามารถเพิ่มได้ในหน้าตั้งค่าเส้นทาง</div>';
+        return;
+      }
+
+      filteredWays.forEach((way, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'way-step-btn';
+        btn.id = 'way-step-btn-' + idx;
+        btn.innerHTML = `
+          <span class="way-step-badge">${way.step}</span>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="text-truncate">${way.name}</div>
+            ${way.description ? `<small class="d-block text-truncate opacity-75" style="font-size:11px;">${way.description}</small>` : ''}
+          </div>
+          <i class="fa-solid fa-chevron-right opacity-50" style="font-size: 11px;"></i>
+        `;
+        btn.onclick = () => selectWayStep(idx);
+        stepList.appendChild(btn);
+      });
+    }
+
+    // แสดงเส้นลูกศรเชื่อมโยงครบทุกจุด (จุดที่ 1 -> จุดที่ 2 -> จุดที่ 3 ...)
+    function showAllWayRoute() {
+      if (filteredWays.length === 0) return;
+      document.getElementById('bouncingPinWrapper').style.display = 'none';
+      document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
+      document.querySelectorAll('.way-step-btn').forEach(b => b.classList.add('active'));
+
+      activeWayStepLimit = filteredWays.length - 1;
+      drawWayArrows(filteredWays, -1);
+
+      if (window.innerWidth < 768) {
+        document.getElementById('wayDrawer').classList.remove('open');
+      }
+      document.getElementById('mapWrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // กดเลือกขั้นตอนเฉพาะลำดับ (วาดเส้นลูกศรจากจุดที่ 1 มาถึงจุดที่เลือก และปักหมุด)
+    function selectWayStep(targetIdx) {
+      if (filteredWays.length === 0) return;
+      document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
+
+      document.querySelectorAll('.way-step-btn').forEach((b, idx) => {
+        if (idx <= targetIdx) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      activeWayStepLimit = targetIdx;
+      const stepsToShow = filteredWays.slice(0, targetIdx + 1);
+      drawWayArrows(stepsToShow, targetIdx);
+
+      // แสดงหมุดเด้งที่จุดหมายของขั้นตอนที่เลือก
+      const currentWay = filteredWays[targetIdx];
+      const centerTop = currentWay.coords.top + (currentWay.coords.height / 2);
+      const centerLeft = currentWay.coords.left + (currentWay.coords.width / 2);
+
+      const pinWrapper = document.getElementById('bouncingPinWrapper');
+      const pinLabel = document.getElementById('bouncingPinLabel');
+      pinLabel.innerText = `ขั้นที่ ${currentWay.step}: ${currentWay.name}`;
+      pinWrapper.style.top = centerTop + '%';
+      pinWrapper.style.left = centerLeft + '%';
+      pinWrapper.style.display = 'block';
+
+      pinWrapper.onclick = () => {
+        if (currentWay.description) {
+          showDetail({
+            name: `ขั้นตอนที่ ${currentWay.step} : ${currentWay.name}`,
+            description: currentWay.description,
+            images: []
+          }, 'green');
+        }
+      };
+
+      if (window.innerWidth < 768) {
+        document.getElementById('wayDrawer').classList.remove('open');
+      }
+      pinWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ล้างเส้นลูกศรทั้งหมด
+    function clearWayRoute() {
+      activeWayStepLimit = null;
+      document.getElementById('waySvgOverlay').innerHTML = '';
+      document.getElementById('wayMarkerContainer').innerHTML = '';
+      document.getElementById('bouncingPinWrapper').style.display = 'none';
+      document.querySelectorAll('.way-step-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    // วาดเส้นลูกศรใหม่เมื่อขนาดหน้าจอเปลี่ยน
+    function redrawCurrentWay() {
+      if (activeWayStepLimit === null || filteredWays.length === 0) return;
+      const stepsToShow = filteredWays.slice(0, activeWayStepLimit + 1);
+      const highlightIdx = (activeWayStepLimit === filteredWays.length - 1) ? -1 : activeWayStepLimit;
+      drawWayArrows(stepsToShow, highlightIdx);
+    }
+
+    // ฟังก์ชันคำนวณและวาดเส้นลูกศร SVG เชื่อมจากจุดที่ 1 -> จุดที่ 2 -> จุดที่ 3 ตามลำดับ
+    function drawWayArrows(steps, activeHighlightIdx) {
+      const wrapper = document.getElementById('mapWrapper');
+      const svg = document.getElementById('waySvgOverlay');
+      const markerContainer = document.getElementById('wayMarkerContainer');
+
+      const W = wrapper.clientWidth;
+      const H = wrapper.clientHeight;
+      if (!W || !H) return;
+
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      markerContainer.innerHTML = '';
+
+      // สร้างหัวลูกศร (SVG Marker)
+      let svgContent = `
+        <defs>
+          <marker id="wayArrowHead" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,7 L9,3.5 z" fill="#059669" />
+          </marker>
+          <marker id="wayArrowHeadBorder" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,8 L10,4 z" fill="#ffffff" />
+          </marker>
+        </defs>
+      `;
+
+      // แปลงพิกัด % เป็นพิกเซลจุดกึ่งกลางของแต่ละขั้นตอน
+      const points = steps.map(w => {
+        const cxPct = w.coords.left + (w.coords.width / 2);
+        const cyPct = w.coords.top + (w.coords.height / 2);
+        return {
+          x: (cxPct / 100) * W,
+          y: (cyPct / 100) * H,
+          cxPct: cxPct,
+          cyPct: cyPct,
+          data: w
+        };
+      });
+
+      // วาดเส้นลูกศรเชื่อมจุดที่ i ไปยังจุดที่ i+1
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 28) {
+          const ux = dx / dist;
+          const uy = dy / dist;
+          // เว้นระยะขอบวงกลมตัวเลขเพื่อให้หัวลูกศรชี้ชนขอบพอดีสวยงาม
+          const startX = p1.x + ux * 18;
+          const startY = p1.y + uy * 18;
+          const endX = p2.x - ux * 22;
+          const endY = p2.y - uy * 22;
+
+          // เส้นขอบขาวด้านนอกเพื่อให้เห็นชัดบนทุกพื้นหลัง
+          svgContent += `
+            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
+                  stroke="#ffffff" stroke-width="7" stroke-linecap="round"
+                  marker-end="url(#wayArrowHeadBorder)" opacity="0.9" />
+          `;
+          // เส้นประสีเขียวมรกตเคลื่อนไหวตามทิศทางเดิน
+          svgContent += `
+            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
+                  stroke="#059669" stroke-width="4" stroke-linecap="round"
+                  class="way-animated-line"
+                  marker-end="url(#wayArrowHead)" />
+          `;
+        }
+      }
+
+      svg.innerHTML = svgContent;
+
+      // สร้างป้ายวงกลมตัวเลขลำดับ (1, 2, 3...) และชื่อขั้นตอนบนแผนผัง
+      points.forEach((pt, idx) => {
+        const isCurrentTarget = (idx === activeHighlightIdx);
+        const marker = document.createElement('div');
+        marker.className = 'way-point-marker';
+        marker.style.left = pt.cxPct + '%';
+        marker.style.top = pt.cyPct + '%';
+        marker.innerHTML = `
+          <div class="way-step-circle ${isCurrentTarget ? 'active-step' : ''}">${pt.data.step}</div>
+          <div class="way-step-tag">${pt.data.name}</div>
+        `;
+        marker.onclick = () => {
+          if (pt.data.description) {
+            showDetail({
+              name: `ขั้นตอนที่ ${pt.data.step} : ${pt.data.name}`,
+              description: pt.data.description,
+              images: []
+            }, 'green');
+          } else {
+            selectWayStep(idx);
+          }
+        };
+        markerContainer.appendChild(marker);
+      });
+    }
+
+    // ฟังก์ชันแสดงหมุดเด้งไปยังจุดบริการที่เลือก (เมนูนำทางด้านซ้าย)
     function focusOnSpot(spot, index) {
+      clearWayRoute();
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
 
@@ -583,7 +1081,7 @@
       pinWrapper.style.left = centerLeft + '%';
       pinWrapper.style.display = 'block';
 
-      pinWrapper.onclick = () => showDetail(spot);
+      pinWrapper.onclick = () => showDetail(spot, 'blue');
 
       if (window.innerWidth < 768) {
         document.getElementById('navDrawer').classList.remove('open');
@@ -592,7 +1090,21 @@
       pinWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    function showDetail(spot) {
+    function showDetail(spot, theme = 'blue') {
+      const header = document.getElementById('infoModalHeader');
+      const descCard = document.getElementById('modalDescCard');
+      const descTitle = document.getElementById('modalDescTitle');
+
+      if (theme === 'green') {
+        header.style.background = 'linear-gradient(135deg, rgba(5, 150, 105, 0.95), rgba(4, 120, 87, 0.98))';
+        descCard.style.borderLeftColor = '#059669';
+        descTitle.className = 'fw-bold text-success mb-2';
+      } else {
+        header.style.background = 'linear-gradient(135deg, rgba(13, 110, 253, 0.9), rgba(11, 94, 215, 0.95))';
+        descCard.style.borderLeftColor = '#0d6efd';
+        descTitle.className = 'fw-bold text-primary mb-2';
+      }
+
       document.getElementById('modalTitle').innerText = spot.name;
       document.getElementById('modalDescription').innerText = spot.description || 'ไม่มีคำอธิบาย';
       const carouselInner = document.getElementById('carouselInner');
