@@ -34,6 +34,43 @@
       z-index: 15;
     }
 
+    /* ปุ่มลากปรับแนวเส้นลูกศรแนวฉากบนแผนผัง */
+    .arrow-elbow-handle {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 35;
+      background: #f59e0b;
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 16px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .arrow-elbow-handle.dir-h { cursor: ew-resize; }
+    .arrow-elbow-handle.dir-v { cursor: ns-resize; }
+    .arrow-elbow-handle:hover { background: #d97706; z-index: 110; }
+    .arrow-flip-btn {
+      background: rgba(255,255,255,0.25);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .arrow-flip-btn:hover { background: #fff; color: #d97706; }
+
     .fix-way-box {
       position: absolute;
       border: 2px dashed #059669;
@@ -106,7 +143,7 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.06);
       padding: 24px;
       margin-top: 28px;
-      max-width: 1320px;
+      max-width: 1380px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -158,7 +195,7 @@
       </div>
 
       <h3 class="fw-bold text-success m-0 fs-5 fs-md-3">
-        <i class="fa-solid fa-route me-2"></i>กำหนดพิกัด รายละเอียด และรูปภาพขั้นตอน (ชีท way)
+        <i class="fa-solid fa-route me-2"></i>กำหนดพิกัด แนวเส้นลูกศรฉาก และรูปภาพขั้นตอน (ชีท way)
       </h3>
 
       <button class="btn btn-emerald btn-sm px-3 py-2 fw-medium shadow-sm" onclick="saveAllWays()">
@@ -171,9 +208,9 @@
       <div class="text-start">
         <p class="text-dark fw-medium m-0">
           <i class="fa-solid fa-circle-info text-success me-1"></i>
-          ลากย้ายกล่องเพื่อตั้งตำแหน่ง หรือดึงจุดมุมขวาล่างเพื่อปรับขนาด (เส้นลูกศรเชื่อมโยง 1 → 2 → 3 จะแสดงตัวอย่างอัตโนมัติ)
+          ลากย้ายกล่องจุดบริการ หรือ <strong>ลากปุ่มสีส้มกลางเส้นลูกศรแนวฉาก</strong> เพื่อขยับหลบไม่ให้เส้นลูกศรทับกัน (กดปุ่ม <i class="fa-solid fa-arrows-rotate"></i> เพื่อสลับแนวฉาก H/V)
         </p>
-        <small class="text-muted">สามารถเพิ่มคำอธิบาย <strong>Description</strong> และลิงก์รูปภาพ <strong>ImageURL</strong> จาก Google Drive ได้ในตารางด้านล่างเหมือนชีท Data</small>
+        <small class="text-muted">สามารถเพิ่มคำอธิบาย <strong>Description</strong> และลิงก์รูปภาพ <strong>ImageURL</strong> จาก Google Drive ได้ในตารางด้านล่าง</small>
       </div>
       <div class="d-flex gap-2">
         <button type="button" id="btnClickPlaceMode" class="btn btn-warning btn-sm fw-medium" onclick="toggleClickPlaceMode()">
@@ -190,16 +227,17 @@
       <div class="map-wrapper" id="mapWrapper">
         <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ" onload="drawPreviewArrows()">
         <svg id="previewWaySvg" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="arrowHandleContainer"></div>
         <div id="fixWayContainer"></div>
       </div>
     </div>
 
-    <!-- ตารางแก้ไข Description, ImageURL, พิกัด และเรียงลำดับขั้นตอน -->
+    <!-- ตารางแก้ไข Description, ImageURL, พิกัด และแนวเส้นลูกศร -->
     <div class="way-table-card">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <div>
-          <h5 class="fw-bold text-success m-0"><i class="fa-solid fa-list-ol me-2"></i>รายการขั้นตอน Description และรูปภาพ ImageURL (ชีท way)</h5>
-          <small class="text-muted">ใส่ลิงก์ Google Drive ในช่อง ImageURL (คั่นด้วยเครื่องหมายจุลภาค , หากมีหลายภาพ) ระบบจะแสดงภาพตัวอย่างทันที</small>
+          <h5 class="fw-bold text-success m-0"><i class="fa-solid fa-list-ol me-2"></i>รายการขั้นตอน Description รูปภาพ และแนวเส้นลูกศร (ชีท way)</h5>
+          <small class="text-muted">สามารถปรับรูปแบบแนวฉาก (H = แนวนอนก่อน, V = แนวตั้งก่อน) และระยะเลื่อนเส้น (%) ได้ทั้งบนแผนผังและในตาราง</small>
         </div>
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-outline-success btn-sm" onclick="addNewWayStep(45, 45)">
@@ -215,15 +253,16 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-success">
             <tr>
-              <th style="width: 75px;" class="text-center">ลำดับ (A)</th>
-              <th style="width: 200px;">ชื่อขั้นตอน (B)</th>
-              <th style="width: 250px;">Description (C)</th>
-              <th style="width: 230px;">ImageURL ลิงก์รูปภาพ (D)</th>
-              <th style="width: 110px;" class="text-center">ภาพตัวอย่าง</th>
-              <th style="width: 120px;" class="text-center">พิกัด (Top, Left)</th>
-              <th style="width: 130px;">กลุ่มงาน (J)</th>
-              <th style="width: 65px;" class="text-center">แสดง</th>
-              <th style="width: 60px;" class="text-center">ลบ</th>
+              <th style="width: 70px;" class="text-center">ลำดับ</th>
+              <th style="width: 190px;">ชื่อขั้นตอน (B)</th>
+              <th style="width: 230px;">Description (C)</th>
+              <th style="width: 200px;">ImageURL (D)</th>
+              <th style="width: 95px;" class="text-center">ภาพตัวอย่าง</th>
+              <th style="width: 195px;" class="text-center">ปรับเส้นลูกศรถัดไป</th>
+              <th style="width: 110px;" class="text-center">พิกัด (Top,Left)</th>
+              <th style="width: 115px;">กลุ่มงาน (J)</th>
+              <th style="width: 55px;" class="text-center">แสดง</th>
+              <th style="width: 55px;" class="text-center">ลบ</th>
             </tr>
           </thead>
           <tbody id="wayTableBody"></tbody>
@@ -250,7 +289,7 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIVb71itXwbPiNNO5lXF7-5JMaFJ_t-EhoRbcusVZzrxAUjHYF9xdX1lLEEIci6p86/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfuwPXEcu3807_Bx5_3T12D5q-om6bbGm2WVGpoDUVCTsMNNG8LeOjNvyoVAZHLn8G/exec';
 
     let globalWays = [];
     let isClickPlaceMode = false;
@@ -275,7 +314,6 @@
       });
     });
 
-    // แปลงลิงก์ Google Drive เป็นลิงก์แสดงผลรูปภาพบนฝั่งหน้าเว็บทันที
     function convertDriveUrlClient(url) {
       if (!url) return '';
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -335,6 +373,8 @@
         images: w.images || parseImageList(w.rawImages),
         group: w.group || '',
         showWay: w.showWay !== false,
+        routeDir: (String(w.routeDir || 'H').toUpperCase() === 'V') ? 'V' : 'H',
+        routeOffset: parseFloat(w.routeOffset) || 0,
         coords: {
           top: parseFloat(w.coords.top) || 15,
           left: parseFloat(w.coords.left) || 15,
@@ -379,16 +419,75 @@
       });
     }
 
+    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรชี้ตรงขอบวงกลมพอดี
+    function trimOrthogonalPolyline(rawPts, trimStart, trimEnd) {
+      const pts = [];
+      for (let i = 0; i < rawPts.length; i++) {
+        if (i === 0 || Math.hypot(rawPts[i].x - pts[pts.length - 1].x, rawPts[i].y - pts[pts.length - 1].y) > 0.5) {
+          pts.push({ x: rawPts[i].x, y: rawPts[i].y });
+        }
+      }
+      if (pts.length < 2) return pts;
+
+      let remStart = trimStart;
+      while (pts.length > 2 && remStart > 0) {
+        const d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+        if (d <= remStart) {
+          remStart -= d;
+          pts.shift();
+        } else {
+          break;
+        }
+      }
+      const d0 = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      if (d0 > remStart && d0 > 0) {
+        const r = remStart / d0;
+        pts[0] = {
+          x: pts[0].x + (pts[1].x - pts[0].x) * r,
+          y: pts[0].y + (pts[1].y - pts[0].y) * r
+        };
+      }
+
+      let remEnd = trimEnd;
+      while (pts.length > 2 && remEnd > 0) {
+        const n = pts.length;
+        const d = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
+        if (d <= remEnd - 10) {
+          remEnd -= d;
+          pts.pop();
+        } else {
+          break;
+        }
+      }
+      const n = pts.length;
+      const dLast = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
+      if (dLast > 0) {
+        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 8));
+        const r = actualTrim / dLast;
+        pts[n - 1] = {
+          x: pts[n - 1].x - (pts[n - 1].x - pts[n - 2].x) * r,
+          y: pts[n - 1].y - (pts[n - 1].y - pts[n - 2].y) * r
+        };
+      }
+      return pts;
+    }
+
+    // วาดเส้นลูกศรแนวฉากตัวอย่าง + สร้างปุ่มลากปรับแนวเส้นบนแผนผัง
     function drawPreviewArrows() {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('previewWaySvg');
+      const handleContainer = document.getElementById('arrowHandleContainer');
       const W = wrapper.clientWidth;
       const H = wrapper.clientHeight;
       if (!W || !H) return;
 
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      handleContainer.innerHTML = '';
 
-      const visibleWays = globalWays.filter(w => w.showWay !== false);
+      const visibleWays = globalWays
+        .map((w, origIdx) => ({ way: w, origIdx }))
+        .filter(item => item.way.showWay !== false);
+
       if (visibleWays.length < 2) {
         svg.innerHTML = '';
         return;
@@ -403,8 +502,9 @@
       `;
 
       for (let i = 0; i < visibleWays.length - 1; i++) {
-        const w1 = visibleWays[i];
-        const w2 = visibleWays[i + 1];
+        const w1 = visibleWays[i].way;
+        const origIdx1 = visibleWays[i].origIdx;
+        const w2 = visibleWays[i + 1].way;
         if ((w1.group || '') !== (w2.group || '')) continue;
 
         const x1 = ((w1.coords.left + w1.coords.width / 2) / 100) * W;
@@ -412,29 +512,120 @@
         const x2 = ((w2.coords.left + w2.coords.width / 2) / 100) * W;
         const y2 = ((w2.coords.top + w2.coords.height / 2) / 100) * H;
 
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const dist = Math.hypot(dx, dy);
+        const dist = Math.hypot(x2 - x1, y2 - y1);
+        if (dist <= 20) continue;
 
-        if (dist > 20) {
-          const ux = dx / dist;
-          const uy = dy / dist;
-          const startX = x1 + ux * 14;
-          const startY = y1 + uy * 14;
-          const endX = x2 - ux * 18;
-          const endY = y2 - uy * 18;
+        const dir = (w1.routeDir === 'V') ? 'V' : 'H';
+        const offsetPct = parseFloat(w1.routeOffset) || 0;
+        let rawPts, handleX, handleY;
 
-          svgContent += `
-            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
-                  stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.85" />
-            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
-                  stroke="#059669" stroke-width="3.5" stroke-dasharray="8 6" stroke-linecap="round"
-                  marker-end="url(#previewArrow)" />
-          `;
+        if (dir === 'H') {
+          const offsetPx = (offsetPct / 100) * W;
+          const midX = Math.max(12, Math.min(W - 12, (x1 + x2) / 2 + offsetPx));
+          rawPts = [
+            { x: x1, y: y1 },
+            { x: midX, y: y1 },
+            { x: midX, y: y2 },
+            { x: x2, y: y2 }
+          ];
+          handleX = midX;
+          handleY = (y1 + y2) / 2;
+        } else {
+          const offsetPx = (offsetPct / 100) * H;
+          const midY = Math.max(12, Math.min(H - 12, (y1 + y2) / 2 + offsetPx));
+          rawPts = [
+            { x: x1, y: y1 },
+            { x: x1, y: midY },
+            { x: x2, y: midY },
+            { x: x2, y: y2 }
+          ];
+          handleX = (x1 + x2) / 2;
+          handleY = midY;
         }
+
+        const orthoPts = trimOrthogonalPolyline(rawPts, 14, 18);
+        const pointsStr = orthoPts.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' ');
+
+        svgContent += `
+          <polyline points="${pointsStr}"
+                    fill="none" stroke="#ffffff" stroke-width="6"
+                    stroke-linecap="round" stroke-linejoin="round" opacity="0.88" />
+          <polyline points="${pointsStr}"
+                    fill="none" stroke="#059669" stroke-width="3.5" stroke-dasharray="8 6"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    marker-end="url(#previewArrow)" />
+        `;
+
+        // สร้างปุ่มจับลากปรับแนวเส้นลูกศรกลางเส้น
+        const handle = document.createElement('div');
+        handle.className = `arrow-elbow-handle ${dir === 'H' ? 'dir-h' : 'dir-v'}`;
+        handle.style.left = `${(handleX / W) * 100}%`;
+        handle.style.top = `${(handleY / H) * 100}%`;
+        handle.title = dir === 'H'
+          ? 'ลากซ้าย-ขวาเพื่อเลื่อนแนวเส้นลูกศรไม่ให้ทับกัน'
+          : 'ลากขึ้น-ลงเพื่อเลื่อนแนวเส้นลูกศรไม่ให้ทับกัน';
+
+        handle.innerHTML = `
+          <span>${w1.step}→${w2.step}</span>
+          <button type="button" class="arrow-flip-btn" title="สลับแนวฉาก (H/V)">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </button>
+        `;
+
+        const flipBtn = handle.querySelector('.arrow-flip-btn');
+        flipBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+        flipBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          w1.routeDir = (w1.routeDir === 'V') ? 'H' : 'V';
+          w1.routeOffset = 0;
+          renderWayTable();
+          drawPreviewArrows();
+        });
+
+        makeElbowHandleDraggable(handle, w1, origIdx1);
+        handleContainer.appendChild(handle);
       }
 
       svg.innerHTML = svgContent;
+    }
+
+    // ลากปุ่มปรับแนวกลางเส้นลูกศรแนวฉากแบบเรียลไทม์
+    function makeElbowHandleDraggable(handleEl, wayData, wayIndex) {
+      handleEl.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const wrapper = document.getElementById('mapWrapper');
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const initialOffset = parseFloat(wayData.routeOffset) || 0;
+
+        function onMove(ev) {
+          ev.preventDefault();
+          const W = wrapper.clientWidth;
+          const H = wrapper.clientHeight;
+          if (wayData.routeDir === 'V') {
+            const deltaPct = ((ev.clientY - startY) / H) * 100;
+            wayData.routeOffset = parseFloat(Math.max(-45, Math.min(45, initialOffset + deltaPct)).toFixed(2));
+          } else {
+            const deltaPct = ((ev.clientX - startX) / W) * 100;
+            wayData.routeOffset = parseFloat(Math.max(-45, Math.min(45, initialOffset + deltaPct)).toFixed(2));
+          }
+
+          const offsetInput = document.getElementById('way-offset-input-' + wayIndex);
+          if (offsetInput) offsetInput.value = wayData.routeOffset;
+
+          drawPreviewArrows();
+        }
+
+        function onUp() {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
     }
 
     function renderThumbHtml(way, index) {
@@ -474,7 +665,7 @@
       if (globalWays.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="text-center text-muted py-4">
+            <td colspan="10" class="text-center text-muted py-4">
               ยังไม่มีจุดขั้นตอน กดปุ่ม <strong>“เพิ่มจุดขั้นตอนใหม่”</strong> หรือ <strong>“คลิกวางจุดบนผัง”</strong> เพื่อเริ่มต้นสร้างเส้นทางเดิน
             </td>
           </tr>
@@ -483,6 +674,24 @@
       }
 
       globalWays.forEach((way, index) => {
+        const isLast = (index === globalWays.length - 1);
+        const routeControlHtml = isLast
+          ? '<span class="text-muted small">จุดสิ้นสุด</span>'
+          : `
+            <div class="d-flex align-items-center gap-1 justify-content-center">
+              <select class="form-select form-select-sm px-1" style="width: 82px;"
+                      onchange="updateWayRoute(${index}, 'routeDir', this.value)">
+                <option value="H" ${way.routeDir !== 'V' ? 'selected' : ''}>ฉาก H</option>
+                <option value="V" ${way.routeDir === 'V' ? 'selected' : ''}>ฉาก V</option>
+              </select>
+              <input type="number" step="0.5" min="-45" max="45"
+                     id="way-offset-input-${index}"
+                     class="form-control form-control-sm text-center px-1" style="width: 68px;"
+                     value="${way.routeOffset || 0}" title="ระยะเลื่อนเส้น (%)"
+                     oninput="updateWayRoute(${index}, 'routeOffset', parseFloat(this.value) || 0)">
+            </div>
+          `;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
@@ -506,6 +715,9 @@
           </td>
           <td class="text-center" id="way-thumb-cell-${index}">
             ${renderThumbHtml(way, index)}
+          </td>
+          <td class="text-center">
+            ${routeControlHtml}
           </td>
           <td class="text-center small text-muted" id="way-coord-cell-${index}">
             ${way.coords.top}%, ${way.coords.left}%
@@ -535,6 +747,11 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    function updateWayRoute(index, field, value) {
+      globalWays[index][field] = value;
+      drawPreviewArrows();
     }
 
     function updateWayField(index, field, value, shouldResort) {
@@ -572,6 +789,8 @@
         images: [],
         group: '',
         showWay: true,
+        routeDir: 'H',
+        routeOffset: 0,
         coords: {
           top: topPct,
           left: leftPct,
@@ -697,6 +916,8 @@
         description: w.description,
         rawImages: w.rawImages || '',
         group: w.group,
+        routeDir: w.routeDir === 'V' ? 'V' : 'H',
+        routeOffset: parseFloat(w.routeOffset) || 0,
         top: w.coords.top,
         left: w.coords.left,
         width: w.coords.width,
@@ -706,7 +927,7 @@
 
       const spinner = document.getElementById('loadingSpinner');
       const spinnerText = document.getElementById('spinnerText');
-      spinnerText.innerText = 'กำลังบันทึกข้อมูลขั้นตอน Description และรูปภาพลงชีท way...';
+      spinnerText.innerText = 'กำลังบันทึกข้อมูลขั้นตอน รูปภาพ และแนวเส้นลูกศรลงชีท way...';
       spinner.style.display = 'flex';
 
       try {
