@@ -24,7 +24,6 @@
     }
     .map-image { width: 100%; height: auto; display: block; pointer-events: none; }
 
-    /* เลเยอร์เส้นลูกศรตัวอย่างในหน้าแก้ไข */
     #previewWaySvg {
       position: absolute;
       top: 0;
@@ -35,7 +34,6 @@
       z-index: 15;
     }
 
-    /* กล่องกำหนดจุดขั้นตอน สามารถลากและปรับขนาดได้ */
     .fix-way-box {
       position: absolute;
       border: 2px dashed #059669;
@@ -81,7 +79,6 @@
       margin-top: 2px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    /* Handle สำหรับปรับขนาด */
     .resize-handle {
       position: absolute;
       width: 12px;
@@ -94,9 +91,7 @@
       cursor: nwse-resize;
       z-index: 101;
     }
-    .fix-way-box:hover .resize-handle {
-      background: #d97706;
-    }
+    .fix-way-box:hover .resize-handle { background: #d97706; }
     .control-panel {
       background: white;
       border-radius: 12px;
@@ -111,23 +106,23 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.06);
       padding: 24px;
       margin-top: 28px;
-      max-width: 1200px;
+      max-width: 1320px;
       margin-left: auto;
       margin-right: auto;
     }
-    .btn-emerald {
-      background: linear-gradient(135deg, #059669, #047857);
-      color: #fff;
-      border: none;
+    .btn-emerald { background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; }
+    .btn-emerald:hover { background: linear-gradient(135deg, #047857, #065f46); color: #fff; }
+    .add-mode-active { cursor: crosshair !important; outline: 4px solid #f59e0b; }
+    .way-thumb-img {
+      width: 56px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      transition: transform 0.15s;
     }
-    .btn-emerald:hover {
-      background: linear-gradient(135deg, #047857, #065f46);
-      color: #fff;
-    }
-    .add-mode-active {
-      cursor: crosshair !important;
-      outline: 4px solid #f59e0b;
-    }
+    .way-thumb-img:hover { transform: scale(1.1); }
     #loadingSpinner {
       position: fixed;
       top: 0;
@@ -150,7 +145,7 @@
     <p class="mt-3 text-secondary fw-bold" id="spinnerText">กำลังโหลดข้อมูลเส้นทาง (way)...</p>
   </div>
 
-  <div class="container my-4">
+  <div class="container-fluid px-3 px-lg-5 my-4">
     <!-- แถบหัวข้อด้านบน -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
       <div class="d-flex gap-2">
@@ -163,7 +158,7 @@
       </div>
 
       <h3 class="fw-bold text-success m-0 fs-5 fs-md-3">
-        <i class="fa-solid fa-route me-2"></i>กำหนดพิกัดและลำดับขั้นตอน (ชีท way)
+        <i class="fa-solid fa-route me-2"></i>กำหนดพิกัด รายละเอียด และรูปภาพขั้นตอน (ชีท way)
       </h3>
 
       <button class="btn btn-emerald btn-sm px-3 py-2 fw-medium shadow-sm" onclick="saveAllWays()">
@@ -172,13 +167,13 @@
     </div>
 
     <!-- แผงคำแนะนำและปุ่มเพิ่มจุด -->
-    <div class="control-panel d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="control-panel d-flex flex-wrap justify-content-between align-items-center gap-3 mx-auto" style="max-width: 1200px;">
       <div class="text-start">
         <p class="text-dark fw-medium m-0">
           <i class="fa-solid fa-circle-info text-success me-1"></i>
           ลากย้ายกล่องเพื่อตั้งตำแหน่ง หรือดึงจุดมุมขวาล่างเพื่อปรับขนาด (เส้นลูกศรเชื่อมโยง 1 → 2 → 3 จะแสดงตัวอย่างอัตโนมัติ)
         </p>
-        <small class="text-muted">สามารถกดปุ่ม <strong>“คลิกวางจุดบนผัง”</strong> เพื่อจิ้มตำแหน่งใหม่ลงบนภาพแผนผังได้ทันที</small>
+        <small class="text-muted">สามารถเพิ่มคำอธิบาย <strong>Description</strong> และลิงก์รูปภาพ <strong>ImageURL</strong> จาก Google Drive ได้ในตารางด้านล่างเหมือนชีท Data</small>
       </div>
       <div class="d-flex gap-2">
         <button type="button" id="btnClickPlaceMode" class="btn btn-warning btn-sm fw-medium" onclick="toggleClickPlaceMode()">
@@ -199,12 +194,12 @@
       </div>
     </div>
 
-    <!-- ตารางแก้ไขรายละเอียด เพิ่ม/ลบ/เรียงลำดับขั้นตอน -->
+    <!-- ตารางแก้ไข Description, ImageURL, พิกัด และเรียงลำดับขั้นตอน -->
     <div class="way-table-card">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <div>
-          <h5 class="fw-bold text-success m-0"><i class="fa-solid fa-list-ol me-2"></i>รายการขั้นตอนและพิกัด (บันทึกลงชีท way)</h5>
-          <small class="text-muted">แก้ไขลำดับตัวเลข (1, 2, 3...) ชื่อขั้นตอน รายละเอียด หรือเพิ่ม/ลบจุดได้จากตารางนี้</small>
+          <h5 class="fw-bold text-success m-0"><i class="fa-solid fa-list-ol me-2"></i>รายการขั้นตอน Description และรูปภาพ ImageURL (ชีท way)</h5>
+          <small class="text-muted">ใส่ลิงก์ Google Drive ในช่อง ImageURL (คั่นด้วยเครื่องหมายจุลภาค , หากมีหลายภาพ) ระบบจะแสดงภาพตัวอย่างทันที</small>
         </div>
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-outline-success btn-sm" onclick="addNewWayStep(45, 45)">
@@ -220,19 +215,32 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-success">
             <tr>
-              <th style="width: 85px;" class="text-center">ลำดับ (A)</th>
-              <th style="width: 240px;">ชื่อขั้นตอน / จุดบริการ (B)</th>
-              <th>รายละเอียดเพิ่มเติม (C)</th>
-              <th style="width: 160px;">กลุ่มงาน (D - ไม่บังคับ)</th>
-              <th style="width: 145px;" class="text-center">พิกัด (Top, Left)</th>
-              <th style="width: 75px;" class="text-center">แสดงผล</th>
-              <th style="width: 70px;" class="text-center">ลบ</th>
+              <th style="width: 75px;" class="text-center">ลำดับ (A)</th>
+              <th style="width: 200px;">ชื่อขั้นตอน (B)</th>
+              <th style="width: 250px;">Description (C)</th>
+              <th style="width: 230px;">ImageURL ลิงก์รูปภาพ (D)</th>
+              <th style="width: 110px;" class="text-center">ภาพตัวอย่าง</th>
+              <th style="width: 120px;" class="text-center">พิกัด (Top, Left)</th>
+              <th style="width: 130px;">กลุ่มงาน (J)</th>
+              <th style="width: 65px;" class="text-center">แสดง</th>
+              <th style="width: 60px;" class="text-center">ลบ</th>
             </tr>
           </thead>
-          <tbody id="wayTableBody">
-            <!-- ข้อมูลรายการขั้นตอนจะถูกสร้างที่นี่ -->
-          </tbody>
+          <tbody id="wayTableBody"></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal ขยายดูภาพตัวอย่าง -->
+  <div class="modal fade" id="imgPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h6 class="modal-title fw-bold" id="imgPreviewTitle">ตัวอย่างภาพประกอบขั้นตอน</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center bg-light" id="imgPreviewBody"></div>
       </div>
     </div>
   </div>
@@ -242,25 +250,23 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6Esw02wXIxYHxpxCy_tUSpq1ZaLSG8Qyf5OOc9WTJCobXzQYbb2D1le9eh0SpIrqF/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIVb71itXwbPiNNO5lXF7-5JMaFJ_t-EhoRbcusVZzrxAUjHYF9xdX1lLEEIci6p86/exec';
 
     let globalWays = [];
     let isClickPlaceMode = false;
+    let imgPreviewModal;
 
     document.addEventListener('DOMContentLoaded', function() {
+      imgPreviewModal = new bootstrap.Modal(document.getElementById('imgPreviewModal'));
       loadWayData();
       window.addEventListener('resize', drawPreviewArrows);
 
-      // รองรับการคลิกบนผังเพื่อวางจุดใหม่เมื่อเปิดโหมดคลิกวางจุด
       const mapWrapper = document.getElementById('mapWrapper');
       mapWrapper.addEventListener('click', function(e) {
         if (!isClickPlaceMode) return;
         const rect = mapWrapper.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-
-        let leftPct = (clickX / rect.width) * 100 - 4;
-        let topPct = (clickY / rect.height) * 100 - 4;
+        let leftPct = ((e.clientX - rect.left) / rect.width) * 100 - 4;
+        let topPct = ((e.clientY - rect.top) / rect.height) * 100 - 4;
         leftPct = Math.max(0, Math.min(92, leftPct));
         topPct = Math.max(0, Math.min(92, topPct));
 
@@ -268,6 +274,28 @@
         toggleClickPlaceMode(false);
       });
     });
+
+    // แปลงลิงก์ Google Drive เป็นลิงก์แสดงผลรูปภาพบนฝั่งหน้าเว็บทันที
+    function convertDriveUrlClient(url) {
+      if (!url) return '';
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return 'https://lh3.googleusercontent.com/d/' + match[1];
+      }
+      const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        return 'https://lh3.googleusercontent.com/d/' + idMatch[1];
+      }
+      return url;
+    }
+
+    function parseImageList(rawStr) {
+      if (!rawStr) return [];
+      return String(rawStr)
+        .split(',')
+        .map(u => convertDriveUrlClient(u.trim()))
+        .filter(u => u !== '');
+    }
 
     function toggleClickPlaceMode(forceState) {
       isClickPlaceMode = (forceState !== undefined) ? forceState : !isClickPlaceMode;
@@ -303,6 +331,8 @@
         step: Number(w.step) || (idx + 1),
         name: w.name || `ขั้นตอนที่ ${idx + 1}`,
         description: w.description || '',
+        rawImages: w.rawImages || (w.images ? w.images.join(', ') : ''),
+        images: w.images || parseImageList(w.rawImages),
         group: w.group || '',
         showWay: w.showWay !== false,
         coords: {
@@ -324,7 +354,6 @@
       drawPreviewArrows();
     }
 
-    // สร้างกล่องจุดขั้นตอนบนแผนผัง
     function renderWayBoxes() {
       const container = document.getElementById('fixWayContainer');
       container.innerHTML = '';
@@ -350,7 +379,6 @@
       });
     }
 
-    // วาดเส้นลูกศรตัวอย่างเชื่อมโยง 1 -> 2 -> 3 บนหน้าจัดการ
     function drawPreviewArrows() {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('previewWaySvg');
@@ -377,7 +405,6 @@
       for (let i = 0; i < visibleWays.length - 1; i++) {
         const w1 = visibleWays[i];
         const w2 = visibleWays[i + 1];
-        // หากมีการแบ่งกลุ่ม ให้เชื่อมเฉพาะจุดที่อยู่ในกลุ่มเดียวกัน
         if ((w1.group || '') !== (w2.group || '')) continue;
 
         const x1 = ((w1.coords.left + w1.coords.width / 2) / 100) * W;
@@ -410,7 +437,36 @@
       svg.innerHTML = svgContent;
     }
 
-    // สร้างตารางแก้ไขข้อมูลขั้นตอนด้านล่าง
+    function renderThumbHtml(way, index) {
+      const imgs = parseImageList(way.rawImages);
+      if (imgs.length === 0) {
+        return '<span class="text-muted small">ไม่มีภาพ</span>';
+      }
+      const badge = imgs.length > 1 ? `<span class="badge bg-success ms-1">+${imgs.length - 1}</span>` : '';
+      return `
+        <div class="d-inline-flex align-items-center">
+          <img src="${imgs[0]}" class="way-thumb-img" alt="ตัวอย่างภาพ"
+               onerror="this.src='https://via.placeholder.com/60x45?text=Error'"
+               onclick="openImagePreview(${index})" title="คลิกเพื่อขยายดูภาพ">
+          ${badge}
+        </div>
+      `;
+    }
+
+    function openImagePreview(index) {
+      const way = globalWays[index];
+      const imgs = parseImageList(way.rawImages);
+      if (imgs.length === 0) return;
+
+      document.getElementById('imgPreviewTitle').innerText = `ขั้นตอนที่ ${way.step} : ${way.name}`;
+      const body = document.getElementById('imgPreviewBody');
+      body.innerHTML = imgs.map(url => `
+        <img src="${url}" class="img-fluid rounded shadow-sm mb-3" style="max-height: 60vh;"
+             onerror="this.src='https://via.placeholder.com/500x300?text=Image+Not+Found'">
+      `).join('');
+      imgPreviewModal.show();
+    }
+
     function renderWayTable() {
       const tbody = document.getElementById('wayTableBody');
       tbody.innerHTML = '';
@@ -418,7 +474,7 @@
       if (globalWays.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">
+            <td colspan="9" class="text-center text-muted py-4">
               ยังไม่มีจุดขั้นตอน กดปุ่ม <strong>“เพิ่มจุดขั้นตอนใหม่”</strong> หรือ <strong>“คลิกวางจุดบนผัง”</strong> เพื่อเริ่มต้นสร้างเส้นทางเดิน
             </td>
           </tr>
@@ -439,17 +495,25 @@
                    oninput="updateWayField(${index}, 'name', this.value, false)">
           </td>
           <td>
-            <input type="text" class="form-control form-control-sm"
-                   value="${escapeHtml(way.description)}" placeholder="คำอธิบายขั้นตอน (ไม่บังคับ)"
-                   oninput="updateWayField(${index}, 'description', this.value, false)">
+            <textarea class="form-control form-control-sm" rows="2"
+                      placeholder="รายละเอียดขั้นตอน (Description)"
+                      oninput="updateWayField(${index}, 'description', this.value, false)">${escapeHtml(way.description)}</textarea>
           </td>
           <td>
             <input type="text" class="form-control form-control-sm"
-                   value="${escapeHtml(way.group)}" placeholder="เช่น งานจดทะเบียน"
-                   oninput="updateWayField(${index}, 'group', this.value, false)">
+                   value="${escapeHtml(way.rawImages)}" placeholder="วางลิงก์รูป Google Drive..."
+                   oninput="updateWayImageField(${index}, this.value)">
+          </td>
+          <td class="text-center" id="way-thumb-cell-${index}">
+            ${renderThumbHtml(way, index)}
           </td>
           <td class="text-center small text-muted" id="way-coord-cell-${index}">
             ${way.coords.top}%, ${way.coords.left}%
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm"
+                   value="${escapeHtml(way.group)}" placeholder="ไม่บังคับ"
+                   oninput="updateWayField(${index}, 'group', this.value, false)">
           </td>
           <td class="text-center">
             <input type="checkbox" class="form-check-input" ${way.showWay !== false ? 'checked' : ''}
@@ -486,7 +550,15 @@
       }
     }
 
-    // เพิ่มจุดขั้นตอนใหม่
+    function updateWayImageField(index, rawValue) {
+      globalWays[index].rawImages = rawValue;
+      globalWays[index].images = parseImageList(rawValue);
+      const thumbCell = document.getElementById('way-thumb-cell-' + index);
+      if (thumbCell) {
+        thumbCell.innerHTML = renderThumbHtml(globalWays[index], index);
+      }
+    }
+
     function addNewWayStep(topPct, leftPct) {
       const nextStep = globalWays.length > 0
         ? Math.max(...globalWays.map(w => Number(w.step) || 0)) + 1
@@ -496,6 +568,8 @@
         step: nextStep,
         name: `จุดบริการที่ ${nextStep}`,
         description: '',
+        rawImages: '',
+        images: [],
         group: '',
         showWay: true,
         coords: {
@@ -509,14 +583,12 @@
       renderAllWayUI();
     }
 
-    // ลบจุดขั้นตอน
     function deleteWayStep(index) {
       if (!confirm(`ต้องการลบ "${globalWays[index].name}" ออกจากเส้นทางใช่หรือไม่?`)) return;
       globalWays.splice(index, 1);
       renderAllWayUI();
     }
 
-    // ทำให้กล่องจุดขั้นตอนสามารถลากย้ายและย่อขยายได้
     function makeInteractive(element, wayData, index) {
       const handle = element.querySelector('.resize-handle');
       
@@ -537,11 +609,8 @@
           let wrapperWidth = wrapper.clientWidth;
           let wrapperHeight = wrapper.clientHeight;
 
-          let dx = e.clientX - startX;
-          let dy = e.clientY - startY;
-
-          let leftPercent = ((startLeft + dx) / wrapperWidth) * 100;
-          let topPercent = ((startTop + dy) / wrapperHeight) * 100;
+          let leftPercent = ((startLeft + (e.clientX - startX)) / wrapperWidth) * 100;
+          let topPercent = ((startTop + (e.clientY - startY)) / wrapperHeight) * 100;
 
           if (leftPercent < 0) leftPercent = 0;
           if (topPercent < 0) topPercent = 0;
@@ -615,7 +684,6 @@
       });
     }
 
-    // บันทึกข้อมูลขั้นตอนและพิกัดทั้งหมดลงชีท way
     async function saveAllWays() {
       let password = sessionStorage.getItem('dol_admin_pass');
       if (!password) {
@@ -627,6 +695,7 @@
         step: Number(w.step),
         name: w.name,
         description: w.description,
+        rawImages: w.rawImages || '',
         group: w.group,
         top: w.coords.top,
         left: w.coords.left,
@@ -637,7 +706,7 @@
 
       const spinner = document.getElementById('loadingSpinner');
       const spinnerText = document.getElementById('spinnerText');
-      spinnerText.innerText = 'กำลังบันทึกข้อมูลขั้นตอนลงชีท way...';
+      spinnerText.innerText = 'กำลังบันทึกข้อมูลขั้นตอน Description และรูปภาพลงชีท way...';
       spinner.style.display = 'flex';
 
       try {
