@@ -13,7 +13,6 @@
     .map-wrapper { position: relative; display: inline-block; width: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; background-color: #e9ecef; user-select: none; }
     .map-image { width: 100%; height: auto; display: block; pointer-events: none; }
     
-    /* การ์ดกำหนดจุด สามารถลากและปรับขนาดได้ */
     .fix-hotspot {
       position: absolute;
       border: 2px dashed #0d6efd;
@@ -41,7 +40,6 @@
       pointer-events: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    /* Handle สำหรับปรับขนาด */
     .resize-handle {
       position: absolute;
       width: 12px;
@@ -54,9 +52,7 @@
       cursor: nwse-resize;
       z-index: 101;
     }
-    .fix-hotspot:hover .resize-handle {
-      background: #dc3545;
-    }
+    .fix-hotspot:hover .resize-handle { background: #dc3545; }
     .control-panel {
       background: white;
       border-radius: 12px;
@@ -74,11 +70,7 @@
       margin-left: auto;
       margin-right: auto;
     }
-    .form-check-input {
-      width: 1.25em;
-      height: 1.25em;
-      cursor: pointer;
-    }
+    .form-check-input { width: 1.25em; height: 1.25em; cursor: pointer; }
     #loadingSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
   </style>
 </head>
@@ -91,14 +83,19 @@
 
   <div class="container my-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-      <a href="index.html" class="btn btn-outline-primary btn-sm">
-        <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
-      </a>
+      <div class="d-flex gap-2">
+        <a href="index.html" class="btn btn-outline-primary btn-sm">
+          <i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าแผนที่หลัก
+        </a>
+        <a href="fixway.html" class="btn btn-outline-success btn-sm">
+          <i class="fa-solid fa-route me-1"></i> ไปหน้าขั้นตอน (Way)
+        </a>
+      </div>
       <h3 class="fw-bold text-primary m-0 fs-5 fs-md-3">
-        <i class="fa-solid fa-crosshairs me-2"></i>เครื่องมือจัดวางและปรับขนาดพิกัดจุด
+        <i class="fa-solid fa-crosshairs me-2"></i>เครื่องมือจัดวางพิกัดจุดบริการ &amp; เสียงบรรยาย
       </h3>
-      <button class="btn btn-success btn-sm btn-md-normal" onclick="saveAllCoords()">
-        <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกพิกัดและการตั้งค่า
+      <button class="btn btn-success btn-sm btn-md-normal px-3 py-2 fw-medium shadow-sm" onclick="saveAllCoords()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกพิกัดและการตั้งค่าทั้งหมด
       </button>
     </div>
 
@@ -110,6 +107,41 @@
       <div class="map-wrapper" id="mapWrapper">
         <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ">
         <div id="fixHotspotContainer"></div>
+      </div>
+    </div>
+
+    <!-- การ์ดตั้งค่าข้อความเสียงบรรยายอัตโนมัติ (Text-to-Speech) -->
+    <div class="nav-table-card border-start border-4 border-primary">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+          <h5 class="fw-bold text-primary m-0"><i class="fa-solid fa-volume-high me-2"></i>ตั้งค่าข้อความเสียงบรรยายอัตโนมัติ (ภาษาไทย)</h5>
+          <small class="text-muted">แก้ไขข้อความที่ต้องการให้ระบบอ่านออกเสียงอัตโนมัติในหน้าแผนผังหลัก (บันทึกลงชีท Config)</small>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="saveAllCoords()">
+          <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกข้อความเสียงและพิกัด
+        </button>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="welcomeSpeechInput" class="form-label fw-semibold m-0">1. ข้อความเสียงต้อนรับอัตโนมัติเมื่อเปิดหน้าแผนผังหลัก</label>
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="testThaiSpeech('welcomeSpeechInput')">
+              <i class="fa-solid fa-play me-1"></i> ทดลองฟังเสียง
+            </button>
+          </div>
+          <textarea id="welcomeSpeechInput" class="form-control" rows="3" placeholder="กรอกข้อความต้อนรับ..."></textarea>
+        </div>
+
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="wayDrawerSpeechInput" class="form-label fw-semibold m-0">2. ข้อความเสียงบรรยายเมื่อเปิดแถบ “แสดงขั้นตอน” ด้านขวา</label>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="testThaiSpeech('wayDrawerSpeechInput')">
+              <i class="fa-solid fa-play me-1"></i> ทดลองฟังเสียง
+            </button>
+          </div>
+          <textarea id="wayDrawerSpeechInput" class="form-control" rows="2" placeholder="กรอกข้อความแนะนำเมื่อเปิดแถบแสดงขั้นตอน..."></textarea>
+        </div>
       </div>
     </div>
 
@@ -137,9 +169,7 @@
               <th style="width: 160px;" class="text-center">สถานะปุ่มนำทาง</th>
             </tr>
           </thead>
-          <tbody id="navCheckboxTableBody">
-            <!-- ข้อมูลตารางเช็คบ็อกซ์จะถูกสร้างที่นี่ -->
-          </tbody>
+          <tbody id="navCheckboxTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -148,9 +178,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ====================================================================
-    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่ (ลิงก์เดียวกับหน้า index.html)
+    // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6Esw02wXIxYHxpxCy_tUSpq1ZaLSG8Qyf5OOc9WTJCobXzQYbb2D1le9eh0SpIrqF/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIVb71itXwbPiNNO5lXF7-5JMaFJ_t-EhoRbcusVZzrxAUjHYF9xdX1lLEEIci6p86/exec';
 
     let globalHotspots = [];
 
@@ -158,7 +188,22 @@
       loadFixMapData();
     });
 
-    // ดึงข้อมูลพิกัดจาก Google Sheets ผ่าน Fetch API
+    // ทดลองฟังเสียงอ่านภาษาไทย
+    function testThaiSpeech(textareaId) {
+      const text = document.getElementById(textareaId).value.trim();
+      if (!text || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const voices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().includes('th'));
+      const femaleVoice = voices.find(v => /premwadee|google|female|kanya|narisa|หญิง/i.test(v.name)) || voices[0];
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'th-TH';
+      if (femaleVoice) utter.voice = femaleVoice;
+      utter.rate = 1.02;
+      utter.pitch = 1.12;
+      window.speechSynthesis.speak(utter);
+    }
+
     async function loadFixMapData() {
       try {
         const response = await fetch(SCRIPT_URL);
@@ -173,6 +218,14 @@
 
     function initFixMap(data) {
       if (data.mapUrl) document.getElementById('mainMap').src = data.mapUrl;
+      
+      // โหลดค่าข้อความเสียงบรรยายลงช่องแก้ไข
+      const settings = data.settings || {};
+      document.getElementById('welcomeSpeechInput').value = settings.welcomeSpeech ||
+        'สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ ยินดีให้บริการค่ะ นี่คือแผนผังสำนักงานอิเล็กทรอนิกส์ ท่านสามารถกดนำทางเพื่อแสดงจุดบริการแต่ละจุด ได้จากเมนูด้านซ้ายมือ หรือ สามารถกดดูขั้นตอนการขอรับบริการแต่ละจุด ได้จากเมนูด้านขวาค่ะ';
+      document.getElementById('wayDrawerSpeechInput').value = settings.wayDrawerSpeech ||
+        'ท่านสามารถกดที่ขั้นตอนเพื่อให้ระบบนำทางไปยังจุดบริการ ตามลำดับขั้นตอนค่ะ';
+
       globalHotspots = data.hotspots || [];
       const container = document.getElementById('fixHotspotContainer');
       container.innerHTML = '';
@@ -196,7 +249,6 @@
       document.getElementById('loadingSpinner').style.display = 'none';
     }
 
-    // สร้างตารางเช็คบ็อกซ์เลือกปุ่มนำทางด้านล่างแผนผัง
     function renderNavTable() {
       const tbody = document.getElementById('navCheckboxTableBody');
       tbody.innerHTML = '';
@@ -234,23 +286,19 @@
     }
 
     function toggleAllNav(isChecked) {
-      globalHotspots.forEach((spot) => {
-        spot.showNav = isChecked;
-      });
+      globalHotspots.forEach((spot) => { spot.showNav = isChecked; });
       renderNavTable();
     }
 
     function syncCheckAllHeader() {
       const checkAll = document.getElementById('checkAllNav');
       if (!checkAll || globalHotspots.length === 0) return;
-      const allChecked = globalHotspots.every(spot => spot.showNav !== false);
-      checkAll.checked = allChecked;
+      checkAll.checked = globalHotspots.every(spot => spot.showNav !== false);
     }
 
     function makeInteractive(element, spotData) {
       const handle = element.querySelector('.resize-handle');
       
-      // ลากเพื่อย้ายตำแหน่ง (Drag to move)
       element.addEventListener('mousedown', function(e) {
         if (e.target === handle) return;
         e.preventDefault();
@@ -268,14 +316,8 @@
           let wrapperWidth = wrapper.clientWidth;
           let wrapperHeight = wrapper.clientHeight;
 
-          let dx = e.clientX - startX;
-          let dy = e.clientY - startY;
-
-          let newLeftPx = startLeft + dx;
-          let newTopPx = startTop + dy;
-
-          let leftPercent = (newLeftPx / wrapperWidth) * 100;
-          let topPercent = (newTopPx / wrapperHeight) * 100;
+          let leftPercent = ((startLeft + (e.clientX - startX)) / wrapperWidth) * 100;
+          let topPercent = ((startTop + (e.clientY - startY)) / wrapperHeight) * 100;
 
           if (leftPercent < 0) leftPercent = 0;
           if (topPercent < 0) topPercent = 0;
@@ -299,7 +341,6 @@
         document.addEventListener('mouseup', closeDragElement);
       });
 
-      // ดึงจุดมุมขวาล่างเพื่อปรับขนาด (Resize handle)
       handle.addEventListener('mousedown', function(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -317,14 +358,8 @@
           let wrapperWidth = wrapper.clientWidth;
           let wrapperHeight = wrapper.clientHeight;
 
-          let dw = e.clientX - startX;
-          let dh = e.clientY - startY;
-
-          let newWidthPx = startWidth + dw;
-          let newHeightPx = startHeight + dh;
-
-          let widthPercent = (newWidthPx / wrapperWidth) * 100;
-          let heightPercent = (newHeightPx / wrapperHeight) * 100;
+          let widthPercent = ((startWidth + (e.clientX - startX)) / wrapperWidth) * 100;
+          let heightPercent = ((startHeight + (e.clientY - startY)) / wrapperHeight) * 100;
 
           if (widthPercent < 3) widthPercent = 3;
           if (heightPercent < 3) heightPercent = 3;
@@ -349,7 +384,6 @@
       });
     }
 
-    // บันทึกพิกัด ขนาด และสถานะปุ่มนำทางกลับไปยัง Google Sheets ผ่าน POST Request
     async function saveAllCoords() {
       let password = sessionStorage.getItem('dol_admin_pass');
       if (!password) {
@@ -366,9 +400,14 @@
         showNav: spot.showNav !== false
       }));
 
+      const settingsPayload = {
+        welcomeSpeech: document.getElementById('welcomeSpeechInput').value.trim(),
+        wayDrawerSpeech: document.getElementById('wayDrawerSpeechInput').value.trim()
+      };
+
       const spinner = document.getElementById('loadingSpinner');
       const spinnerText = document.getElementById('spinnerText');
-      spinnerText.innerText = 'กำลังบันทึกพิกัดและการตั้งค่าปุ่มนำทาง...';
+      spinnerText.innerText = 'กำลังบันทึกพิกัดและการตั้งค่าทั้งหมด...';
       spinner.style.display = 'flex';
 
       try {
@@ -380,7 +419,8 @@
           body: JSON.stringify({
             action: 'saveCoords',
             password: password,
-            coordsList: payload
+            coordsList: payload,
+            settings: settingsPayload
           })
         });
 
@@ -402,4 +442,3 @@
   </script>
 </body>
 </html>
-
