@@ -51,7 +51,7 @@
       z-index: 10;
     }
 
-    /* เลเยอร์ SVG วาดเส้นลูกศรเชื่อมโยงขั้นตอน (way) */
+    /* เลเยอร์ SVG วาดเส้นลูกศรแนวฉากเชื่อมโยงขั้นตอน (way) */
     #waySvgOverlay {
       position: absolute;
       top: 0;
@@ -284,7 +284,17 @@
       overflow: hidden;
     }
     .way-step-btn:hover { background: #dcfce7; border-color: #6ee7b7; }
-    .way-step-btn.active { background: #059669; border-color: #059669; color: #fff; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35); }
+    .way-step-btn.prev-active {
+      background: #d1fae5;
+      border-color: #34d399;
+      color: #065f46;
+    }
+    .way-step-btn.active {
+      background: #059669;
+      border-color: #059669;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+    }
     .way-step-badge {
       min-width: 28px;
       height: 28px;
@@ -451,7 +461,7 @@
     </button>
     <div class="way-drawer-header">
       <h6 class="m-0 fw-bold"><i class="fa-solid fa-route me-2"></i>ขั้นตอนการรับบริการ</h6>
-      <small class="text-white-50" style="font-size: 12px;">กดที่ขั้นตอนเพื่อนำทางและฟังเสียงบรรยาย</small>
+      <small class="text-white-50" style="font-size: 12px;">กดที่ขั้นตอนเพื่อนำทางและฟังเสียงบรรยายทันที</small>
     </div>
     <div class="p-2 border-bottom bg-light">
       <select id="wayGroupSelect" class="form-select form-select-sm mb-2" style="display: none;" onchange="onWayGroupChange()"></select>
@@ -531,7 +541,7 @@
       <img src="" id="mainMap" class="map-image" alt="ผังจุดบริการ" onload="redrawCurrentWay()">
       <div id="hotspotContainer"></div>
       
-      <!-- เลเยอร์ SVG วาดเส้นลูกศรเชื่อมโยงทางเดิน (way) -->
+      <!-- เลเยอร์ SVG วาดเส้นลูกศรแนวฉากเชื่อมโยงทางเดิน (way) -->
       <svg id="waySvgOverlay" xmlns="http://www.w3.org/2000/svg"></svg>
       <!-- เลเยอร์ป้ายตัวเลขลำดับขั้นตอนบนแผนผัง -->
       <div id="wayMarkerContainer"></div>
@@ -619,7 +629,7 @@
     // ====================================================================
     // นำ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL) มาใส่ที่นี่
     // ====================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIVb71itXwbPiNNO5lXF7-5JMaFJ_t-EhoRbcusVZzrxAUjHYF9xdX1lLEEIci6p86/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfuwPXEcu3807_Bx5_3T12D5q-om6bbGm2WVGpoDUVCTsMNNG8LeOjNvyoVAZHLn8G/exec';
     const ADMIN_PASS = 'Dol1234';
 
     let infoModal;
@@ -627,12 +637,12 @@
     let allHotspots = [];
     let allWays = [];
     let filteredWays = [];
-    let activeWayStepLimit = null;
+    let wayViewMode = null; // null = ยังไม่แสดง, 'step' = แสดงเฉพาะจุดก่อนหน้า->ปัจจุบัน, 'all' = แสดงทั้งหมด
+    let activeWayStepIndex = null;
     let currentModalText = '';
     let hasPlayedWelcome = false;
     let selectedThaiVoice = null;
 
-    // ข้อความเสียงเริ่มต้น (จะถูกอัปเดตอัตโนมัติจากค่าที่ตั้งใน fixpoint.html)
     let speechSettings = {
       welcomeSpeech: 'สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ ยินดีให้บริการค่ะ นี่คือแผนผังสำนักงานอิเล็กทรอนิกส์ ท่านสามารถกดนำทางเพื่อแสดงจุดบริการแต่ละจุด ได้จากเมนูด้านซ้ายมือ หรือ สามารถกดดูขั้นตอนการขอรับบริการแต่ละจุด ได้จากเมนูด้านขวาค่ะ',
       wayDrawerSpeech: 'ท่านสามารถกดที่ขั้นตอนเพื่อให้ระบบนำทางไปยังจุดบริการ ตามลำดับขั้นตอนค่ะ'
@@ -644,7 +654,6 @@
       const voices = window.speechSynthesis.getVoices();
       const thaiVoices = voices.filter(v => v.lang && v.lang.toLowerCase().includes('th'));
       if (thaiVoices.length > 0) {
-        // เลือกเสียงผู้หญิงสุภาพเป็นอันดับแรก
         selectedThaiVoice = thaiVoices.find(v =>
           /premwadee|google|female|kanya|narisa|หญิง/i.test(v.name)
         ) || thaiVoices[0];
@@ -659,32 +668,41 @@
     function speakThai(text, onBlockedCallback) {
       if (!('speechSynthesis' in window) || !text) return;
       loadThaiVoices();
-      window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'th-TH';
-      if (selectedThaiVoice) {
-        utterance.voice = selectedThaiVoice;
+      const synth = window.speechSynthesis;
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
       }
-      // ปรับโทนเสียงวัยรุ่นสุภาพ นุ่มนวล ฟังชัดเจน
-      utterance.rate = 1.02;
-      utterance.pitch = 1.12;
-      utterance.volume = 1.0;
 
-      utterance.onerror = function(e) {
-        if ((e.error === 'not-allowed' || e.error === 'interrupted') && typeof onBlockedCallback === 'function') {
-          onBlockedCallback();
+      const startSpeak = () => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window._activeUtterance = utterance; // ป้องกันเบราว์เซอร์ตัดเสียงกลางคัน
+        utterance.lang = 'th-TH';
+        if (selectedThaiVoice) {
+          utterance.voice = selectedThaiVoice;
         }
+        utterance.rate = 1.02;
+        utterance.pitch = 1.12;
+        utterance.volume = 1.0;
+
+        utterance.onerror = function(e) {
+          if ((e.error === 'not-allowed' || e.error === 'interrupted') && typeof onBlockedCallback === 'function') {
+            onBlockedCallback();
+          }
+        };
+
+        synth.speak(utterance);
+        if (synth.paused) synth.resume();
       };
 
-      window.speechSynthesis.speak(utterance);
+      // หน่วงสั้นๆ 30ms หลัง cancel() เพื่อให้เบราว์เซอร์เริ่มอ่านข้อความใหม่ทันทีไม่ค้าง
+      setTimeout(startSpeak, 30);
     }
 
     function triggerWelcomeSpeech() {
       if (hasPlayedWelcome) return;
       hasPlayedWelcome = true;
       speakThai(speechSettings.welcomeSpeech, () => {
-        // หากเบราว์เซอร์บล็อกเสียงอัตโนมัติก่อนการคลิกครั้งแรก ให้เล่นทันทีเมื่อผู้ใช้แตะหน้าจอครั้งแรก
         hasPlayedWelcome = false;
       });
     }
@@ -706,7 +724,6 @@
       loadMapData();
       window.addEventListener('resize', redrawCurrentWay);
 
-      // ตัวช่วยเล่นเสียงต้อนรับอัตโนมัติเมื่อผู้ใช้แตะหน้าจอครั้งแรก (กรณีเบราว์เซอร์บล็อก Autoplay ตอนโหลดหน้า)
       const firstInteractionHandler = () => {
         if (!hasPlayedWelcome && speechSettings.welcomeSpeech) {
           triggerWelcomeSpeech();
@@ -736,7 +753,6 @@
       if (willOpen) {
         nav.classList.remove('open');
         hasPlayedWelcome = true;
-        // อ่านเสียงบรรยายเมื่อเปิดแถบ "แสดงขั้นตอน"
         speakThai(speechSettings.wayDrawerSpeech);
       }
     }
@@ -847,7 +863,6 @@
       initWayMenu();
       document.getElementById('loadingSpinner').style.display = 'none';
 
-      // อ่านเสียงต้อนรับอัตโนมัติเมื่อเปิดหน้าผังสำเร็จ
       setTimeout(() => {
         triggerWelcomeSpeech();
       }, 350);
@@ -869,8 +884,11 @@
 
     function onWayGroupChange() {
       filterWaysBySelectedGroup();
-      if (activeWayStepLimit !== null) {
+      if (wayViewMode === 'all') {
         showAllWayRoute();
+      } else if (wayViewMode === 'step' && activeWayStepIndex !== null) {
+        const safeIdx = Math.min(activeWayStepIndex, filteredWays.length - 1);
+        if (safeIdx >= 0) selectWayStep(safeIdx, false);
       }
     }
 
@@ -883,6 +901,7 @@
       }
 
       filteredWays.sort((a, b) => Number(a.step) - Number(b.step));
+      filteredWays.forEach((w, i) => { w._idx = i; });
       renderWayStepButtons();
     }
 
@@ -909,10 +928,9 @@
             ${way.description ? `<small class="d-block text-truncate opacity-75" style="font-size:11px;">${way.description}</small>` : ''}
           </div>
         `;
-        btn.onclick = () => selectWayStep(idx);
+        btn.onclick = () => selectWayStep(idx, true);
         itemWrap.appendChild(btn);
 
-        // ปุ่มดูรูปภาพ/รายละเอียดของขั้นตอน (หากมี Description หรือ ImageURL)
         if ((way.images && way.images.length > 0) || way.description) {
           const infoBtn = document.createElement('button');
           infoBtn.className = 'way-info-mini-btn';
@@ -922,7 +940,7 @@
             : '<i class="fa-solid fa-circle-info"></i>';
           infoBtn.onclick = (e) => {
             e.stopPropagation();
-            selectWayStep(idx, false);
+            selectWayStep(idx, true);
             showDetail({
               name: `ขั้นตอนที่ ${way.step} : ${way.name}`,
               description: way.description,
@@ -936,15 +954,19 @@
       });
     }
 
-    // แสดงเส้นลูกศรเชื่อมโยงครบทุกจุด (จุดที่ 1 -> จุดที่ 2 -> จุดที่ 3 ...)
+    // แสดงเส้นลูกศรแนวฉากเชื่อมโยงครบทุกจุด (เมื่อกดปุ่ม "แสดงเส้นทางทั้งหมด" เท่านั้น)
     function showAllWayRoute() {
       if (filteredWays.length === 0) return;
       document.getElementById('bouncingPinWrapper').style.display = 'none';
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
-      document.querySelectorAll('.way-step-btn').forEach(b => b.classList.add('active'));
+      document.querySelectorAll('.way-step-btn').forEach(b => {
+        b.classList.remove('prev-active');
+        b.classList.add('active');
+      });
 
-      activeWayStepLimit = filteredWays.length - 1;
+      wayViewMode = 'all';
+      activeWayStepIndex = null;
       drawWayArrows(filteredWays, -1);
 
       hasPlayedWelcome = true;
@@ -956,22 +978,29 @@
       document.getElementById('mapWrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // กดเลือกขั้นตอนเฉพาะลำดับ (วาดเส้นลูกศร + ปักหมุด + อ่านอธิบายขั้นตอนอัตโนมัติ)
+    // กดเลือกขั้นตอนเฉพาะลำดับ -> แสดงลูกศรเฉพาะจุดก่อนหน้า -> จุดปัจจุบัน เท่านั้น และอ่านรายละเอียดทันที
     function selectWayStep(targetIdx, shouldSpeak = true) {
       if (filteredWays.length === 0) return;
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
 
       document.querySelectorAll('.way-step-btn').forEach((b, idx) => {
-        if (idx <= targetIdx) {
+        b.classList.remove('active', 'prev-active');
+        if (idx === targetIdx) {
           b.classList.add('active');
-        } else {
-          b.classList.remove('active');
+        } else if (idx === targetIdx - 1) {
+          b.classList.add('prev-active');
         }
       });
 
-      activeWayStepLimit = targetIdx;
-      const stepsToShow = filteredWays.slice(0, targetIdx + 1);
+      wayViewMode = 'step';
+      activeWayStepIndex = targetIdx;
+
+      // แสดงเฉพาะจุดก่อนหน้า (targetIdx - 1) และจุดปัจจุบัน (targetIdx) เท่านั้น
+      const stepsToShow = (targetIdx > 0)
+        ? [filteredWays[targetIdx - 1], filteredWays[targetIdx]]
+        : [filteredWays[0]];
+
       drawWayArrows(stepsToShow, targetIdx);
 
       const currentWay = filteredWays[targetIdx];
@@ -995,11 +1024,12 @@
         }
       };
 
-      // อ่านคำอธิบายขั้นตอนภาษาไทยอัตโนมัติเมื่อกดที่ขั้นตอน
+      // อ่านข้อความรายละเอียดของขั้นตอนออกเสียงอัตโนมัติทันทีเมื่อกดที่ปุ่ม
       if (shouldSpeak) {
         hasPlayedWelcome = true;
-        const speechText = `ขั้นตอนที่ ${currentWay.step} ${currentWay.name}` +
-          (currentWay.description ? ` ${currentWay.description}` : ' ค่ะ');
+        const speechText = currentWay.description
+          ? `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} รายละเอียด ${currentWay.description}`
+          : `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} ค่ะ`;
         speakThai(speechText);
       }
 
@@ -1010,22 +1040,113 @@
     }
 
     function clearWayRoute() {
-      activeWayStepLimit = null;
+      wayViewMode = null;
+      activeWayStepIndex = null;
       document.getElementById('waySvgOverlay').innerHTML = '';
       document.getElementById('wayMarkerContainer').innerHTML = '';
       document.getElementById('bouncingPinWrapper').style.display = 'none';
-      document.querySelectorAll('.way-step-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.way-step-btn').forEach(b => b.classList.remove('active', 'prev-active'));
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
     function redrawCurrentWay() {
-      if (activeWayStepLimit === null || filteredWays.length === 0) return;
-      const stepsToShow = filteredWays.slice(0, activeWayStepLimit + 1);
-      const highlightIdx = (activeWayStepLimit === filteredWays.length - 1) ? -1 : activeWayStepLimit;
-      drawWayArrows(stepsToShow, highlightIdx);
+      if (!wayViewMode || filteredWays.length === 0) return;
+      if (wayViewMode === 'all') {
+        drawWayArrows(filteredWays, -1);
+      } else if (wayViewMode === 'step' && activeWayStepIndex !== null) {
+        const stepsToShow = (activeWayStepIndex > 0)
+          ? [filteredWays[activeWayStepIndex - 1], filteredWays[activeWayStepIndex]]
+          : [filteredWays[0]];
+        drawWayArrows(stepsToShow, activeWayStepIndex);
+      }
     }
 
-    function drawWayArrows(steps, activeHighlightIdx) {
+    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรชี้ตรงขอบวงกลมพอดี
+    function trimOrthogonalPolyline(rawPts, trimStart, trimEnd) {
+      const pts = [];
+      for (let i = 0; i < rawPts.length; i++) {
+        if (i === 0 || Math.hypot(rawPts[i].x - pts[pts.length - 1].x, rawPts[i].y - pts[pts.length - 1].y) > 0.5) {
+          pts.push({ x: rawPts[i].x, y: rawPts[i].y });
+        }
+      }
+      if (pts.length < 2) return pts;
+
+      // ตัดระยะจุดเริ่มต้น (trimStart)
+      let remStart = trimStart;
+      while (pts.length > 2 && remStart > 0) {
+        const d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+        if (d <= remStart) {
+          remStart -= d;
+          pts.shift();
+        } else {
+          break;
+        }
+      }
+      const d0 = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      if (d0 > remStart && d0 > 0) {
+        const r = remStart / d0;
+        pts[0] = {
+          x: pts[0].x + (pts[1].x - pts[0].x) * r,
+          y: pts[0].y + (pts[1].y - pts[0].y) * r
+        };
+      }
+
+      // ตัดระยะจุดปลายทาง (trimEnd) โดยคงทิศทางตั้งฉากของปลายลูกศรไว้
+      let remEnd = trimEnd;
+      while (pts.length > 2 && remEnd > 0) {
+        const n = pts.length;
+        const d = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
+        if (d <= remEnd - 10) {
+          remEnd -= d;
+          pts.pop();
+        } else {
+          break;
+        }
+      }
+      const n = pts.length;
+      const dLast = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
+      if (dLast > 0) {
+        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 8));
+        const r = actualTrim / dLast;
+        pts[n - 1] = {
+          x: pts[n - 1].x - (pts[n - 1].x - pts[n - 2].x) * r,
+          y: pts[n - 1].y - (pts[n - 1].y - pts[n - 2].y) * r
+        };
+      }
+      return pts;
+    }
+
+    // สร้างจุดเส้นแนวฉาก (90 องศา) จากจุด p1 ไป p2 ตามค่า routeDir และ routeOffset
+    function buildOrthogonalPoints(p1, p2, W, H) {
+      const dir = (p1.data.routeDir === 'V') ? 'V' : 'H';
+      const offsetPct = parseFloat(p1.data.routeOffset) || 0;
+      let rawPts;
+
+      if (dir === 'H') {
+        const offsetPx = (offsetPct / 100) * W;
+        const midX = Math.max(12, Math.min(W - 12, (p1.x + p2.x) / 2 + offsetPx));
+        rawPts = [
+          { x: p1.x, y: p1.y },
+          { x: midX, y: p1.y },
+          { x: midX, y: p2.y },
+          { x: p2.x, y: p2.y }
+        ];
+      } else {
+        const offsetPx = (offsetPct / 100) * H;
+        const midY = Math.max(12, Math.min(H - 12, (p1.y + p2.y) / 2 + offsetPx));
+        rawPts = [
+          { x: p1.x, y: p1.y },
+          { x: p1.x, y: midY },
+          { x: p2.x, y: midY },
+          { x: p2.x, y: p2.y }
+        ];
+      }
+
+      return trimOrthogonalPolyline(rawPts, 18, 22);
+    }
+
+    // วาดเส้นลูกศรแนวฉาก SVG และป้ายจุดขั้นตอน
+    function drawWayArrows(steps, activeOriginalIdx) {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('waySvgOverlay');
       const markerContainer = document.getElementById('wayMarkerContainer');
@@ -1063,35 +1184,31 @@
       for (let i = 0; i < points.length - 1; i++) {
         const p1 = points[i];
         const p2 = points[i + 1];
-
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const dist = Math.hypot(dx, dy);
+        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
         if (dist > 28) {
-          const ux = dx / dist;
-          const uy = dy / dist;
-          const startX = p1.x + ux * 18;
-          const startY = p1.y + uy * 18;
-          const endX = p2.x - ux * 22;
-          const endY = p2.y - uy * 22;
+          const orthoPts = buildOrthogonalPoints(p1, p2, W, H);
+          const pointsStr = orthoPts.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' ');
 
           svgContent += `
-            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
-                  stroke="#ffffff" stroke-width="7" stroke-linecap="round"
-                  marker-end="url(#wayArrowHeadBorder)" opacity="0.9" />
-            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}"
-                  stroke="#059669" stroke-width="4" stroke-linecap="round"
-                  class="way-animated-line"
-                  marker-end="url(#wayArrowHead)" />
+            <polyline points="${pointsStr}"
+                      fill="none" stroke="#ffffff" stroke-width="7"
+                      stroke-linecap="round" stroke-linejoin="round"
+                      marker-end="url(#wayArrowHeadBorder)" opacity="0.92" />
+            <polyline points="${pointsStr}"
+                      fill="none" stroke="#059669" stroke-width="4"
+                      stroke-linecap="round" stroke-linejoin="round"
+                      class="way-animated-line"
+                      marker-end="url(#wayArrowHead)" />
           `;
         }
       }
 
       svg.innerHTML = svgContent;
 
-      points.forEach((pt, idx) => {
-        const isCurrentTarget = (idx === activeHighlightIdx);
+      points.forEach((pt) => {
+        const origIdx = pt.data._idx;
+        const isCurrentTarget = (origIdx === activeOriginalIdx);
         const marker = document.createElement('div');
         marker.className = 'way-point-marker';
         marker.style.left = pt.cxPct + '%';
@@ -1101,7 +1218,7 @@
           <div class="way-step-tag">${pt.data.name}</div>
         `;
         marker.onclick = () => {
-          selectWayStep(idx, true);
+          selectWayStep(origIdx, true);
           if ((pt.data.images && pt.data.images.length > 0) || pt.data.description) {
             showDetail({
               name: `ขั้นตอนที่ ${pt.data.step} : ${pt.data.name}`,
