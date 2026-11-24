@@ -34,101 +34,115 @@
       z-index: 15;
     }
 
-    /* ปุ่มลากปรับแนวเส้นลูกศรแนวฉากบนแผนผัง */
+    /* ปุ่มลากปรับแนวเส้นลูกศรแนวฉากขนาดเล็กพิเศษ ไม่ทับซ้อนบนมือถือ */
     .arrow-elbow-handle {
       position: absolute;
       transform: translate(-50%, -50%);
       z-index: 35;
-      background: #f59e0b;
+      background: rgba(245, 158, 11, 0.92);
       color: #fff;
-      border: 2px solid #fff;
-      border-radius: 16px;
-      padding: 2px 7px;
-      font-size: 11px;
+      border: 1.5px solid #fff;
+      border-radius: 12px;
+      padding: 1px 5px;
+      font-size: 9px;
       font-weight: 600;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      line-height: 1.2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.28);
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 3px;
       white-space: nowrap;
+      touch-action: none;
     }
     .arrow-elbow-handle.dir-h { cursor: ew-resize; }
     .arrow-elbow-handle.dir-v { cursor: ns-resize; }
     .arrow-elbow-handle:hover { background: #d97706; z-index: 110; }
     .arrow-flip-btn {
-      background: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.28);
       border: none;
       color: #fff;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 8px;
       cursor: pointer;
     }
     .arrow-flip-btn:hover { background: #fff; color: #d97706; }
 
     .fix-way-box {
       position: absolute;
-      border: 2px dashed #059669;
-      background-color: rgba(16, 185, 129, 0.25);
+      border: 1.5px dashed #059669;
+      background-color: rgba(16, 185, 129, 0.2);
       cursor: move;
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 20;
+      touch-action: none;
       transition: border-color 0.2s, background-color 0.2s;
     }
     .fix-way-box:hover, .fix-way-box.active {
       border-color: #d97706;
-      background-color: rgba(245, 158, 11, 0.28);
+      background-color: rgba(245, 158, 11, 0.25);
       z-index: 100;
     }
     .way-num-pill {
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #059669;
       color: #fff;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      border: 1.5px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
       pointer-events: none;
     }
     .fix-way-badge {
-      background: rgba(6, 78, 59, 0.92);
+      background: rgba(6, 78, 59, 0.88);
       color: white;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 9px;
       font-weight: 500;
       white-space: nowrap;
       pointer-events: none;
-      margin-top: 2px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      margin-top: 1px;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .resize-handle {
       position: absolute;
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       background: #059669;
-      border: 2px solid white;
+      border: 1.5px solid white;
       border-radius: 50%;
-      bottom: -6px;
-      right: -6px;
+      bottom: -5px;
+      right: -5px;
       cursor: nwse-resize;
       z-index: 101;
+      touch-action: none;
     }
     .fix-way-box:hover .resize-handle { background: #d97706; }
+
+    @media (max-width: 768px) {
+      .way-num-pill { width: 15px; height: 15px; font-size: 9px; border-width: 1px; }
+      .fix-way-badge { display: none; }
+      .arrow-elbow-handle { font-size: 8px; padding: 1px 4px; }
+      .arrow-flip-btn { width: 12px; height: 12px; font-size: 7px; }
+    }
+
     .control-panel {
       background: white;
       border-radius: 12px;
@@ -314,6 +328,13 @@
       });
     });
 
+    function getPointerXY(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
     function convertDriveUrlClient(url) {
       if (!url) return '';
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -419,7 +440,7 @@
       });
     }
 
-    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรชี้ตรงขอบวงกลมพอดี
+    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรขนาดเล็กชี้ตรงขอบจุดพอดี
     function trimOrthogonalPolyline(rawPts, trimStart, trimEnd) {
       const pts = [];
       for (let i = 0; i < rawPts.length; i++) {
@@ -452,7 +473,7 @@
       while (pts.length > 2 && remEnd > 0) {
         const n = pts.length;
         const d = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
-        if (d <= remEnd - 10) {
+        if (d <= remEnd - 6) {
           remEnd -= d;
           pts.pop();
         } else {
@@ -462,7 +483,7 @@
       const n = pts.length;
       const dLast = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
       if (dLast > 0) {
-        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 8));
+        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 5));
         const r = actualTrim / dLast;
         pts[n - 1] = {
           x: pts[n - 1].x - (pts[n - 1].x - pts[n - 2].x) * r,
@@ -472,7 +493,7 @@
       return pts;
     }
 
-    // วาดเส้นลูกศรแนวฉากตัวอย่าง + สร้างปุ่มลากปรับแนวเส้นบนแผนผัง
+    // วาดเส้นลูกศรแนวฉากขนาดเล็กที่สุด + ปุ่มปรับแนวเส้น
     function drawPreviewArrows() {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('previewWaySvg');
@@ -495,8 +516,8 @@
 
       let svgContent = `
         <defs>
-          <marker id="previewArrow" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,7 L9,3.5 z" fill="#059669" />
+          <marker id="previewArrow" markerWidth="5.5" markerHeight="5.5" refX="4.2" refY="2" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,4 L5,2 z" fill="#059669" />
           </marker>
         </defs>
       `;
@@ -513,7 +534,7 @@
         const y2 = ((w2.coords.top + w2.coords.height / 2) / 100) * H;
 
         const dist = Math.hypot(x2 - x1, y2 - y1);
-        if (dist <= 20) continue;
+        if (dist <= 14) continue;
 
         const dir = (w1.routeDir === 'V') ? 'V' : 'H';
         const offsetPct = parseFloat(w1.routeOffset) || 0;
@@ -521,7 +542,7 @@
 
         if (dir === 'H') {
           const offsetPx = (offsetPct / 100) * W;
-          const midX = Math.max(12, Math.min(W - 12, (x1 + x2) / 2 + offsetPx));
+          const midX = Math.max(8, Math.min(W - 8, (x1 + x2) / 2 + offsetPx));
           rawPts = [
             { x: x1, y: y1 },
             { x: midX, y: y1 },
@@ -532,7 +553,7 @@
           handleY = (y1 + y2) / 2;
         } else {
           const offsetPx = (offsetPct / 100) * H;
-          const midY = Math.max(12, Math.min(H - 12, (y1 + y2) / 2 + offsetPx));
+          const midY = Math.max(8, Math.min(H - 8, (y1 + y2) / 2 + offsetPx));
           rawPts = [
             { x: x1, y: y1 },
             { x: x1, y: midY },
@@ -543,20 +564,19 @@
           handleY = midY;
         }
 
-        const orthoPts = trimOrthogonalPolyline(rawPts, 14, 18);
+        const orthoPts = trimOrthogonalPolyline(rawPts, 8, 10);
         const pointsStr = orthoPts.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' ');
 
         svgContent += `
           <polyline points="${pointsStr}"
-                    fill="none" stroke="#ffffff" stroke-width="6"
+                    fill="none" stroke="#ffffff" stroke-width="2.6"
                     stroke-linecap="round" stroke-linejoin="round" opacity="0.88" />
           <polyline points="${pointsStr}"
-                    fill="none" stroke="#059669" stroke-width="3.5" stroke-dasharray="8 6"
+                    fill="none" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 3"
                     stroke-linecap="round" stroke-linejoin="round"
                     marker-end="url(#previewArrow)" />
         `;
 
-        // สร้างปุ่มจับลากปรับแนวเส้นลูกศรกลางเส้น
         const handle = document.createElement('div');
         handle.className = `arrow-elbow-handle ${dir === 'H' ? 'dir-h' : 'dir-v'}`;
         handle.style.left = `${(handleX / W) * 100}%`;
@@ -574,6 +594,7 @@
 
         const flipBtn = handle.querySelector('.arrow-flip-btn');
         flipBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+        flipBtn.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
         flipBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           w1.routeDir = (w1.routeDir === 'V') ? 'H' : 'V';
@@ -589,26 +610,27 @@
       svg.innerHTML = svgContent;
     }
 
-    // ลากปุ่มปรับแนวกลางเส้นลูกศรแนวฉากแบบเรียลไทม์
+    // ลากปุ่มปรับแนวกลางเส้นลูกศรแนวฉาก (รองรับทั้งเมาส์และหน้าจอสัมผัสบนมือถือ)
     function makeElbowHandleDraggable(handleEl, wayData, wayIndex) {
-      handleEl.addEventListener('mousedown', function(e) {
+      const startDrag = function(e) {
+        if (e.target.closest('.arrow-flip-btn')) return;
         e.stopPropagation();
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
 
         const wrapper = document.getElementById('mapWrapper');
-        const startX = e.clientX;
-        const startY = e.clientY;
+        const startPt = getPointerXY(e);
         const initialOffset = parseFloat(wayData.routeOffset) || 0;
 
         function onMove(ev) {
-          ev.preventDefault();
+          if (ev.cancelable) ev.preventDefault();
+          const curPt = getPointerXY(ev);
           const W = wrapper.clientWidth;
           const H = wrapper.clientHeight;
           if (wayData.routeDir === 'V') {
-            const deltaPct = ((ev.clientY - startY) / H) * 100;
+            const deltaPct = ((curPt.y - startPt.y) / H) * 100;
             wayData.routeOffset = parseFloat(Math.max(-45, Math.min(45, initialOffset + deltaPct)).toFixed(2));
           } else {
-            const deltaPct = ((ev.clientX - startX) / W) * 100;
+            const deltaPct = ((curPt.x - startPt.x) / W) * 100;
             wayData.routeOffset = parseFloat(Math.max(-45, Math.min(45, initialOffset + deltaPct)).toFixed(2));
           }
 
@@ -621,11 +643,18 @@
         function onUp() {
           document.removeEventListener('mousemove', onMove);
           document.removeEventListener('mouseup', onUp);
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('touchend', onUp);
         }
 
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
-      });
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onUp);
+      };
+
+      handleEl.addEventListener('mousedown', startDrag);
+      handleEl.addEventListener('touchstart', startDrag, { passive: false });
     }
 
     function renderThumbHtml(way, index) {
@@ -794,8 +823,8 @@
         coords: {
           top: topPct,
           left: leftPct,
-          width: 8,
-          height: 8
+          width: 7,
+          height: 7
         }
       });
 
@@ -808,28 +837,29 @@
       renderAllWayUI();
     }
 
+    // รองรับการลากและปรับขนาดกล่องจุดบริการทั้งบนคอมพิวเตอร์และหน้าจอสัมผัสโทรศัพท์
     function makeInteractive(element, wayData, index) {
       const handle = element.querySelector('.resize-handle');
       
-      element.addEventListener('mousedown', function(e) {
+      const startBoxDrag = function(e) {
         if (e.target === handle) return;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         
         const wrapper = document.getElementById('mapWrapper');
-        let startX = e.clientX;
-        let startY = e.clientY;
+        const startPt = getPointerXY(e);
         let startLeft = element.offsetLeft;
         let startTop = element.offsetTop;
 
         element.classList.add('active');
 
-        function elementDrag(e) {
-          e.preventDefault();
+        function elementDrag(ev) {
+          if (ev.cancelable) ev.preventDefault();
+          const curPt = getPointerXY(ev);
           let wrapperWidth = wrapper.clientWidth;
           let wrapperHeight = wrapper.clientHeight;
 
-          let leftPercent = ((startLeft + (e.clientX - startX)) / wrapperWidth) * 100;
-          let topPercent = ((startTop + (e.clientY - startY)) / wrapperHeight) * 100;
+          let leftPercent = ((startLeft + (curPt.x - startPt.x)) / wrapperWidth) * 100;
+          let topPercent = ((startTop + (curPt.y - startPt.y)) / wrapperHeight) * 100;
 
           if (leftPercent < 0) leftPercent = 0;
           if (topPercent < 0) topPercent = 0;
@@ -852,34 +882,41 @@
           element.classList.remove('active');
           document.removeEventListener('mousemove', elementDrag);
           document.removeEventListener('mouseup', closeDragElement);
+          document.removeEventListener('touchmove', elementDrag);
+          document.removeEventListener('touchend', closeDragElement);
         }
 
         document.addEventListener('mousemove', elementDrag);
         document.addEventListener('mouseup', closeDragElement);
-      });
+        document.addEventListener('touchmove', elementDrag, { passive: false });
+        document.addEventListener('touchend', closeDragElement);
+      };
 
-      handle.addEventListener('mousedown', function(e) {
+      element.addEventListener('mousedown', startBoxDrag);
+      element.addEventListener('touchstart', startBoxDrag, { passive: false });
+
+      const startBoxResize = function(e) {
         e.stopPropagation();
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
 
         const wrapper = document.getElementById('mapWrapper');
-        let startX = e.clientX;
-        let startY = e.clientY;
+        const startPt = getPointerXY(e);
         let startWidth = element.offsetWidth;
         let startHeight = element.offsetHeight;
 
         element.classList.add('active');
 
-        function elementResize(e) {
-          e.preventDefault();
+        function elementResize(ev) {
+          if (ev.cancelable) ev.preventDefault();
+          const curPt = getPointerXY(ev);
           let wrapperWidth = wrapper.clientWidth;
           let wrapperHeight = wrapper.clientHeight;
 
-          let widthPercent = ((startWidth + (e.clientX - startX)) / wrapperWidth) * 100;
-          let heightPercent = ((startHeight + (e.clientY - startY)) / wrapperHeight) * 100;
+          let widthPercent = ((startWidth + (curPt.x - startPt.x)) / wrapperWidth) * 100;
+          let heightPercent = ((startHeight + (curPt.y - startPt.y)) / wrapperHeight) * 100;
 
-          if (widthPercent < 3) widthPercent = 3;
-          if (heightPercent < 3) heightPercent = 3;
+          if (widthPercent < 2.5) widthPercent = 2.5;
+          if (heightPercent < 2.5) heightPercent = 2.5;
           if (wayData.coords.left + widthPercent > 100) widthPercent = 100 - wayData.coords.left;
           if (wayData.coords.top + heightPercent > 100) heightPercent = 100 - wayData.coords.top;
 
@@ -896,11 +933,18 @@
           element.classList.remove('active');
           document.removeEventListener('mousemove', elementResize);
           document.removeEventListener('mouseup', closeResizeElement);
+          document.removeEventListener('touchmove', elementResize);
+          document.removeEventListener('touchend', closeResizeElement);
         }
 
         document.addEventListener('mousemove', elementResize);
         document.addEventListener('mouseup', closeResizeElement);
-      });
+        document.addEventListener('touchmove', elementResize, { passive: false });
+        document.addEventListener('touchend', closeResizeElement);
+      };
+
+      handle.addEventListener('mousedown', startBoxResize);
+      handle.addEventListener('touchstart', startBoxResize, { passive: false });
     }
 
     async function saveAllWays() {
