@@ -62,58 +62,70 @@
       z-index: 25;
     }
     .way-animated-line {
-      stroke-dasharray: 12 8;
-      animation: dashFlow 1s linear infinite;
+      stroke-dasharray: 7 5;
+      animation: dashFlow 0.9s linear infinite;
     }
     @keyframes dashFlow {
-      to { stroke-dashoffset: -20; }
+      to { stroke-dashoffset: -12; }
     }
 
-    /* ป้ายจุดขั้นตอนบนแผนผัง */
+    /* จุดตัวเลขลำดับขั้นตอนบนแผนผัง (ตัดป้ายข้อความสีเขียวออก เหลือเฉพาะวงกลมตัวเลขขนาดกะทัดรัด) */
     .way-point-marker {
       position: absolute;
       transform: translate(-50%, -50%);
       z-index: 30;
       cursor: pointer;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
       transition: transform 0.2s ease;
     }
     .way-point-marker:hover {
-      transform: translate(-50%, -50%) scale(1.1);
+      transform: translate(-50%, -50%) scale(1.15);
       z-index: 40;
     }
     .way-step-circle {
-      width: 34px;
-      height: 34px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: linear-gradient(135deg, #059669, #047857);
       color: #fff;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 3px solid #fff;
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.55);
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5);
     }
     .way-step-circle.active-step {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.35), 0 4px 14px rgba(217, 119, 6, 0.6);
-      transform: scale(1.15);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35), 0 2px 8px rgba(217, 119, 6, 0.6);
+      transform: scale(1.12);
     }
-    .way-step-tag {
-      margin-top: 4px;
+
+    /* แถบสถานะเมื่อเปิดโหมดนำทางอัตโนมัติ (แสดงเส้นทางทั้งหมด) */
+    .auto-tour-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
       background: rgba(6, 78, 59, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #fff;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: 1.5px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
       font-weight: 500;
+      max-width: 92%;
       white-space: nowrap;
-      border: 1px solid rgba(255,255,255,0.6);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
     }
 
     /* Tooltip ลอยตามเคอร์เซอร์เมาส์ */
@@ -325,7 +337,7 @@
     .btn-emerald { background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; }
     .btn-emerald:hover { background: linear-gradient(135deg, #047857, #065f46); color: #fff; }
 
-    /* ================= หมุดเด้ง (Bouncing Pin) บนแผนผัง ================= */
+    /* ================= หมุดเด้งสีแดงขนาดกะทัดรัด (เหมาะกับหน้าจอโทรศัพท์ ไม่บังภาพ) ================= */
     .bouncing-pin-wrapper {
       position: absolute;
       z-index: 50;
@@ -344,30 +356,58 @@
     .bouncing-pin-label {
       background: #dc3545;
       color: #fff;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 2px 9px;
+      border-radius: 14px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.45);
-      margin-bottom: 4px;
-      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.45);
+      margin-bottom: 2px;
+      border: 1.5px solid #fff;
     }
-    .bouncing-pin-icon { font-size: 42px; color: #dc3545; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)); line-height: 1; }
+    .bouncing-pin-icon {
+      font-size: 24px;
+      color: #dc3545;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35));
+      line-height: 1;
+    }
     .pin-pulse {
       position: absolute;
-      bottom: -6px;
+      bottom: -3px;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 10px;
+      width: 14px;
+      height: 6px;
       background: rgba(220, 53, 69, 0.5);
       border-radius: 50%;
       animation: pulseRing 1.2s infinite ease-out;
       pointer-events: none;
     }
-    @keyframes pinBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-16px); } }
-    @keyframes pulseRing { 0% { transform: translateX(-50%) scale(0.6); opacity: 1; } 100% { transform: translateX(-50%) scale(2.4); opacity: 0; } }
+    @keyframes pinBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+    @keyframes pulseRing { 0% { transform: translateX(-50%) scale(0.6); opacity: 1; } 100% { transform: translateX(-50%) scale(2.1); opacity: 0; } }
+
+    /* ปรับขนาดบนหน้าจอโทรศัพท์มือถือให้ยิ่งกะทัดรัด ไม่บดบังผัง */
+    @media (max-width: 768px) {
+      .way-step-circle {
+        width: 19px;
+        height: 19px;
+        font-size: 10px;
+        border-width: 1.5px;
+      }
+      .bouncing-pin-label {
+        font-size: 10px;
+        padding: 1px 7px;
+        border-width: 1px;
+      }
+      .bouncing-pin-icon {
+        font-size: 19px;
+      }
+      .auto-tour-bar {
+        font-size: 11px;
+        padding: 4px 10px;
+        bottom: 6px;
+      }
+    }
 
     /* Glassmorphism 3D Modal */
     .modal-content.glass-modal {
@@ -466,7 +506,7 @@
     <div class="p-2 border-bottom bg-light">
       <select id="wayGroupSelect" class="form-select form-select-sm mb-2" style="display: none;" onchange="onWayGroupChange()"></select>
       <div class="d-flex gap-1">
-        <button class="btn btn-emerald btn-sm flex-grow-1 fw-medium" onclick="showAllWayRoute()">
+        <button class="btn btn-emerald btn-sm flex-grow-1 fw-medium" onclick="startAutoWayTour()">
           <i class="fa-solid fa-play me-1"></i> แสดงเส้นทางทั้งหมด
         </button>
         <button class="btn btn-outline-secondary btn-sm" onclick="clearWayRoute()" title="ซ่อนเส้นลูกศร">
@@ -543,16 +583,25 @@
       
       <!-- เลเยอร์ SVG วาดเส้นลูกศรแนวฉากเชื่อมโยงทางเดิน (way) -->
       <svg id="waySvgOverlay" xmlns="http://www.w3.org/2000/svg"></svg>
-      <!-- เลเยอร์ป้ายตัวเลขลำดับขั้นตอนบนแผนผัง -->
+      <!-- เลเยอร์ตัวเลขลำดับขั้นตอนบนแผนผัง -->
       <div id="wayMarkerContainer"></div>
       
-      <!-- หมุดเด้งแสดงตำแหน่งที่เลือก -->
+      <!-- หมุดเด้งสีแดงขนาดกะทัดรัดแสดงตำแหน่งที่เลือก -->
       <div id="bouncingPinWrapper" class="bouncing-pin-wrapper" title="คลิกเพื่อดูรายละเอียดและรูปภาพ">
         <div class="bouncing-pin">
           <div class="bouncing-pin-label" id="bouncingPinLabel"></div>
           <i class="fa-solid fa-location-dot bouncing-pin-icon"></i>
         </div>
         <div class="pin-pulse"></div>
+      </div>
+
+      <!-- แถบสถานะเมื่อเล่นโหมดแสดงเส้นทางทั้งหมดอัตโนมัติ -->
+      <div id="autoTourBar" class="auto-tour-bar">
+        <i class="fa-solid fa-volume-high text-warning"></i>
+        <span id="autoTourStatusText" class="text-truncate">กำลังนำทางอัตโนมัติ...</span>
+        <button type="button" class="btn btn-danger btn-sm py-0 px-2 rounded-pill" style="font-size: 11px;" onclick="stopAutoWayTour()">
+          หยุด
+        </button>
       </div>
     </div>
   </div>
@@ -637,11 +686,16 @@
     let allHotspots = [];
     let allWays = [];
     let filteredWays = [];
-    let wayViewMode = null; // null = ยังไม่แสดง, 'step' = แสดงเฉพาะจุดก่อนหน้า->ปัจจุบัน, 'all' = แสดงทั้งหมด
+    let wayViewMode = null; // null = ยังไม่แสดง, 'step' = แสดงเฉพาะจุดก่อนหน้า->ปัจจุบัน, 'tour' = แสดงเส้นทางทั้งหมดอัตโนมัติ
     let activeWayStepIndex = null;
     let currentModalText = '';
     let hasPlayedWelcome = false;
     let selectedThaiVoice = null;
+
+    // ตัวแปรควบคุมการนำทางอัตโนมัติตั้งแต่ขั้นตอนแรกถึงขั้นตอนสุดท้าย
+    let isAutoTourRunning = false;
+    let autoTourToken = 0;
+    let autoTourFallbackTimer = null;
 
     let speechSettings = {
       welcomeSpeech: 'สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ ยินดีให้บริการค่ะ นี่คือแผนผังสำนักงานอิเล็กทรอนิกส์ ท่านสามารถกดนำทางเพื่อแสดงจุดบริการแต่ละจุด ได้จากเมนูด้านซ้ายมือ หรือ สามารถกดดูขั้นตอนการขอรับบริการแต่ละจุด ได้จากเมนูด้านขวาค่ะ',
@@ -665,8 +719,11 @@
       window.speechSynthesis.onvoiceschanged = loadThaiVoices;
     }
 
-    function speakThai(text, onBlockedCallback) {
-      if (!('speechSynthesis' in window) || !text) return;
+    function speakThai(text, onBlockedCallback, onEndCallback) {
+      if (!('speechSynthesis' in window) || !text) {
+        if (typeof onEndCallback === 'function') onEndCallback();
+        return;
+      }
       loadThaiVoices();
 
       const synth = window.speechSynthesis;
@@ -676,7 +733,7 @@
 
       const startSpeak = () => {
         const utterance = new SpeechSynthesisUtterance(text);
-        window._activeUtterance = utterance; // ป้องกันเบราว์เซอร์ตัดเสียงกลางคัน
+        window._activeUtterance = utterance;
         utterance.lang = 'th-TH';
         if (selectedThaiVoice) {
           utterance.voice = selectedThaiVoice;
@@ -685,9 +742,17 @@
         utterance.pitch = 1.12;
         utterance.volume = 1.0;
 
+        utterance.onend = function() {
+          if (typeof onEndCallback === 'function') {
+            onEndCallback();
+          }
+        };
+
         utterance.onerror = function(e) {
           if ((e.error === 'not-allowed' || e.error === 'interrupted') && typeof onBlockedCallback === 'function') {
             onBlockedCallback();
+          } else if (e.error !== 'canceled' && e.error !== 'interrupted' && typeof onEndCallback === 'function') {
+            onEndCallback();
           }
         };
 
@@ -695,7 +760,6 @@
         if (synth.paused) synth.resume();
       };
 
-      // หน่วงสั้นๆ 30ms หลัง cancel() เพื่อให้เบราว์เซอร์เริ่มอ่านข้อความใหม่ทันทีไม่ค้าง
       setTimeout(startSpeak, 30);
     }
 
@@ -708,6 +772,7 @@
     }
 
     function replayWelcomeSpeech() {
+      stopAutoWayTour();
       hasPlayedWelcome = true;
       speakThai(speechSettings.welcomeSpeech);
     }
@@ -753,7 +818,9 @@
       if (willOpen) {
         nav.classList.remove('open');
         hasPlayedWelcome = true;
-        speakThai(speechSettings.wayDrawerSpeech);
+        if (!isAutoTourRunning) {
+          speakThai(speechSettings.wayDrawerSpeech);
+        }
       }
     }
 
@@ -883,9 +950,10 @@
     }
 
     function onWayGroupChange() {
+      stopAutoWayTour();
       filterWaysBySelectedGroup();
-      if (wayViewMode === 'all') {
-        showAllWayRoute();
+      if (wayViewMode === 'tour') {
+        startAutoWayTour();
       } else if (wayViewMode === 'step' && activeWayStepIndex !== null) {
         const safeIdx = Math.min(activeWayStepIndex, filteredWays.length - 1);
         if (safeIdx >= 0) selectWayStep(safeIdx, false);
@@ -954,33 +1022,125 @@
       });
     }
 
-    // แสดงเส้นลูกศรแนวฉากเชื่อมโยงครบทุกจุด (เมื่อกดปุ่ม "แสดงเส้นทางทั้งหมด" เท่านั้น)
-    function showAllWayRoute() {
+    // หยุดโหมดนำทางอัตโนมัติ
+    function stopAutoWayTour() {
+      isAutoTourRunning = false;
+      autoTourToken++;
+      if (autoTourFallbackTimer) {
+        clearTimeout(autoTourFallbackTimer);
+        autoTourFallbackTimer = null;
+      }
+      const tourBar = document.getElementById('autoTourBar');
+      if (tourBar) tourBar.style.display = 'none';
+    }
+
+    // ปุ่ม "แสดงเส้นทางทั้งหมด" -> เริ่มนำทางอัตโนมัติตั้งแต่ขั้นตอนแรกจนถึงขั้นตอนสุดท้าย พร้อมเสียงและเส้นนำทาง
+    function startAutoWayTour() {
       if (filteredWays.length === 0) return;
-      document.getElementById('bouncingPinWrapper').style.display = 'none';
+
+      stopAutoWayTour();
+      isAutoTourRunning = true;
+      const myToken = autoTourToken;
+
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
-      document.querySelectorAll('.way-step-btn').forEach(b => {
-        b.classList.remove('prev-active');
-        b.classList.add('active');
-      });
-
-      wayViewMode = 'all';
-      activeWayStepIndex = null;
-      drawWayArrows(filteredWays, -1);
-
-      hasPlayedWelcome = true;
-      speakThai(`แสดงเส้นทางเดินทั้งหมด ตั้งแต่ขั้นตอนที่ ${filteredWays[0].step} ถึงขั้นตอนที่ ${filteredWays[filteredWays.length - 1].step} ค่ะ`);
 
       if (window.innerWidth < 768) {
         document.getElementById('wayDrawer').classList.remove('open');
       }
-      document.getElementById('mapWrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const tourBar = document.getElementById('autoTourBar');
+      const tourStatus = document.getElementById('autoTourStatusText');
+      tourBar.style.display = 'flex';
+
+      const runTourStep = (idx) => {
+        if (!isAutoTourRunning || myToken !== autoTourToken) return;
+
+        if (idx >= filteredWays.length) {
+          // จบครบทุกขั้นตอนแล้ว คงเส้นทางทั้งหมดแสดงไว้บนแผนผัง
+          isAutoTourRunning = false;
+          tourBar.style.display = 'none';
+          return;
+        }
+
+        const currentWay = filteredWays[idx];
+        tourStatus.innerText = `กำลังนำทาง: ขั้นที่ ${currentWay.step} (${idx + 1}/${filteredWays.length})`;
+
+        // ไฮไลท์ปุ่มขั้นตอนในแถบด้านขวา
+        document.querySelectorAll('.way-step-btn').forEach((b, i) => {
+          b.classList.remove('active', 'prev-active');
+          if (i === idx) {
+            b.classList.add('active');
+          } else if (i < idx) {
+            b.classList.add('prev-active');
+          }
+        });
+
+        wayViewMode = 'tour';
+        activeWayStepIndex = idx;
+
+        // วาดเส้นลูกศรแนวฉากสะสมตั้งแต่ขั้นตอนแรกมาจนถึงขั้นตอนปัจจุบัน
+        const stepsToShow = filteredWays.slice(0, idx + 1);
+        drawWayArrows(stepsToShow, idx);
+
+        // เลื่อนหมุดสีแดงขนาดกะทัดรัดไปยังจุดบริการของขั้นตอนนี้
+        const centerTop = currentWay.coords.top + (currentWay.coords.height / 2);
+        const centerLeft = currentWay.coords.left + (currentWay.coords.width / 2);
+
+        const pinWrapper = document.getElementById('bouncingPinWrapper');
+        const pinLabel = document.getElementById('bouncingPinLabel');
+        pinLabel.innerText = `${currentWay.step}. ${currentWay.name}`;
+        pinWrapper.style.top = centerTop + '%';
+        pinWrapper.style.left = centerLeft + '%';
+        pinWrapper.style.display = 'block';
+
+        pinWrapper.onclick = () => {
+          stopAutoWayTour();
+          if ((currentWay.images && currentWay.images.length > 0) || currentWay.description) {
+            showDetail({
+              name: `ขั้นตอนที่ ${currentWay.step} : ${currentWay.name}`,
+              description: currentWay.description,
+              images: currentWay.images || []
+            }, 'green');
+          }
+        };
+
+        pinWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // อ่านเฉพาะข้อความในช่อง Description (C) เท่านั้น
+        hasPlayedWelcome = true;
+        const speechText = (currentWay.description && currentWay.description.trim() !== '')
+          ? currentWay.description.trim()
+          : currentWay.name;
+
+        let advanced = false;
+        const goNextStep = () => {
+          if (advanced || !isAutoTourRunning || myToken !== autoTourToken) return;
+          advanced = true;
+          if (autoTourFallbackTimer) {
+            clearTimeout(autoTourFallbackTimer);
+            autoTourFallbackTimer = null;
+          }
+          setTimeout(() => {
+            runTourStep(idx + 1);
+          }, 900);
+        };
+
+        // ตัวจับเวลาสำรองเผื่อกรณีเบราว์เซอร์ปิดเสียงหรือไม่ส่งสัญญาณ onend
+        const fallbackMs = Math.max(4500, speechText.length * 110 + 2000);
+        autoTourFallbackTimer = setTimeout(goNextStep, fallbackMs);
+
+        speakThai(speechText, null, goNextStep);
+      };
+
+      runTourStep(0);
     }
 
-    // กดเลือกขั้นตอนเฉพาะลำดับ -> แสดงลูกศรเฉพาะจุดก่อนหน้า -> จุดปัจจุบัน เท่านั้น และอ่านรายละเอียดทันที
+    // กดเลือกขั้นตอนเฉพาะลำดับ -> แสดงลูกศรเฉพาะจุดก่อนหน้า -> จุดปัจจุบัน เท่านั้น และอ่านเฉพาะ Description (C) ทันที
     function selectWayStep(targetIdx, shouldSpeak = true) {
       if (filteredWays.length === 0) return;
+      stopAutoWayTour();
+
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
 
@@ -1009,7 +1169,7 @@
 
       const pinWrapper = document.getElementById('bouncingPinWrapper');
       const pinLabel = document.getElementById('bouncingPinLabel');
-      pinLabel.innerText = `ขั้นที่ ${currentWay.step}: ${currentWay.name}`;
+      pinLabel.innerText = `${currentWay.step}. ${currentWay.name}`;
       pinWrapper.style.top = centerTop + '%';
       pinWrapper.style.left = centerLeft + '%';
       pinWrapper.style.display = 'block';
@@ -1024,12 +1184,12 @@
         }
       };
 
-      // อ่านข้อความรายละเอียดของขั้นตอนออกเสียงอัตโนมัติทันทีเมื่อกดที่ปุ่ม
+      // อ่านเฉพาะข้อความในช่อง Description (C) เท่านั้น ไม่มีคำว่า "รายละเอียด"
       if (shouldSpeak) {
         hasPlayedWelcome = true;
-        const speechText = currentWay.description
-          ? `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} รายละเอียด ${currentWay.description}`
-          : `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} ค่ะ`;
+        const speechText = (currentWay.description && currentWay.description.trim() !== '')
+          ? currentWay.description.trim()
+          : currentWay.name;
         speakThai(speechText);
       }
 
@@ -1040,6 +1200,7 @@
     }
 
     function clearWayRoute() {
+      stopAutoWayTour();
       wayViewMode = null;
       activeWayStepIndex = null;
       document.getElementById('waySvgOverlay').innerHTML = '';
@@ -1051,8 +1212,9 @@
 
     function redrawCurrentWay() {
       if (!wayViewMode || filteredWays.length === 0) return;
-      if (wayViewMode === 'all') {
-        drawWayArrows(filteredWays, -1);
+      if (wayViewMode === 'tour' && activeWayStepIndex !== null) {
+        const stepsToShow = filteredWays.slice(0, activeWayStepIndex + 1);
+        drawWayArrows(stepsToShow, activeWayStepIndex);
       } else if (wayViewMode === 'step' && activeWayStepIndex !== null) {
         const stepsToShow = (activeWayStepIndex > 0)
           ? [filteredWays[activeWayStepIndex - 1], filteredWays[activeWayStepIndex]]
@@ -1071,7 +1233,6 @@
       }
       if (pts.length < 2) return pts;
 
-      // ตัดระยะจุดเริ่มต้น (trimStart)
       let remStart = trimStart;
       while (pts.length > 2 && remStart > 0) {
         const d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
@@ -1091,12 +1252,11 @@
         };
       }
 
-      // ตัดระยะจุดปลายทาง (trimEnd) โดยคงทิศทางตั้งฉากของปลายลูกศรไว้
       let remEnd = trimEnd;
       while (pts.length > 2 && remEnd > 0) {
         const n = pts.length;
         const d = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
-        if (d <= remEnd - 10) {
+        if (d <= remEnd - 8) {
           remEnd -= d;
           pts.pop();
         } else {
@@ -1106,7 +1266,7 @@
       const n = pts.length;
       const dLast = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
       if (dLast > 0) {
-        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 8));
+        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 6));
         const r = actualTrim / dLast;
         pts[n - 1] = {
           x: pts[n - 1].x - (pts[n - 1].x - pts[n - 2].x) * r,
@@ -1116,7 +1276,7 @@
       return pts;
     }
 
-    // สร้างจุดเส้นแนวฉาก (90 องศา) จากจุด p1 ไป p2 ตามค่า routeDir และ routeOffset
+    // สร้างจุดเส้นแนวฉาก (90 องศา) จากจุด p1 ไป p2
     function buildOrthogonalPoints(p1, p2, W, H) {
       const dir = (p1.data.routeDir === 'V') ? 'V' : 'H';
       const offsetPct = parseFloat(p1.data.routeOffset) || 0;
@@ -1124,7 +1284,7 @@
 
       if (dir === 'H') {
         const offsetPx = (offsetPct / 100) * W;
-        const midX = Math.max(12, Math.min(W - 12, (p1.x + p2.x) / 2 + offsetPx));
+        const midX = Math.max(8, Math.min(W - 8, (p1.x + p2.x) / 2 + offsetPx));
         rawPts = [
           { x: p1.x, y: p1.y },
           { x: midX, y: p1.y },
@@ -1133,7 +1293,7 @@
         ];
       } else {
         const offsetPx = (offsetPct / 100) * H;
-        const midY = Math.max(12, Math.min(H - 12, (p1.y + p2.y) / 2 + offsetPx));
+        const midY = Math.max(8, Math.min(H - 8, (p1.y + p2.y) / 2 + offsetPx));
         rawPts = [
           { x: p1.x, y: p1.y },
           { x: p1.x, y: midY },
@@ -1142,10 +1302,11 @@
         ];
       }
 
-      return trimOrthogonalPolyline(rawPts, 18, 22);
+      const isMobile = W < 768;
+      return trimOrthogonalPolyline(rawPts, isMobile ? 10 : 12, isMobile ? 12 : 14);
     }
 
-    // วาดเส้นลูกศรแนวฉาก SVG และป้ายจุดขั้นตอน
+    // วาดเส้นลูกศรแนวฉาก SVG และจุดวงกลมตัวเลข (ตัดข้อความสีเขียวออก เหลือแต่หมุดสีแดง)
     function drawWayArrows(steps, activeOriginalIdx) {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('waySvgOverlay');
@@ -1160,11 +1321,11 @@
 
       let svgContent = `
         <defs>
-          <marker id="wayArrowHead" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,7 L9,3.5 z" fill="#059669" />
+          <marker id="wayArrowHead" markerWidth="6" markerHeight="6" refX="4.5" refY="2.2" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,4.4 L5.5,2.2 z" fill="#059669" />
           </marker>
-          <marker id="wayArrowHeadBorder" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,8 L10,4 z" fill="#ffffff" />
+          <marker id="wayArrowHeadBorder" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,5 L6.5,2.5 z" fill="#ffffff" />
           </marker>
         </defs>
       `;
@@ -1186,17 +1347,17 @@
         const p2 = points[i + 1];
         const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
-        if (dist > 28) {
+        if (dist > 18) {
           const orthoPts = buildOrthogonalPoints(p1, p2, W, H);
           const pointsStr = orthoPts.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' ');
 
           svgContent += `
             <polyline points="${pointsStr}"
-                      fill="none" stroke="#ffffff" stroke-width="7"
+                      fill="none" stroke="#ffffff" stroke-width="3.6"
                       stroke-linecap="round" stroke-linejoin="round"
                       marker-end="url(#wayArrowHeadBorder)" opacity="0.92" />
             <polyline points="${pointsStr}"
-                      fill="none" stroke="#059669" stroke-width="4"
+                      fill="none" stroke="#059669" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round"
                       class="way-animated-line"
                       marker-end="url(#wayArrowHead)" />
@@ -1206,6 +1367,7 @@
 
       svg.innerHTML = svgContent;
 
+      // แสดงเฉพาะวงกลมตัวเลขลำดับ (ไม่แสดงข้อความสีเขียว)
       points.forEach((pt) => {
         const origIdx = pt.data._idx;
         const isCurrentTarget = (origIdx === activeOriginalIdx);
@@ -1213,10 +1375,7 @@
         marker.className = 'way-point-marker';
         marker.style.left = pt.cxPct + '%';
         marker.style.top = pt.cyPct + '%';
-        marker.innerHTML = `
-          <div class="way-step-circle ${isCurrentTarget ? 'active-step' : ''}">${pt.data.step}</div>
-          <div class="way-step-tag">${pt.data.name}</div>
-        `;
+        marker.innerHTML = `<div class="way-step-circle ${isCurrentTarget ? 'active-step' : ''}">${pt.data.step}</div>`;
         marker.onclick = () => {
           selectWayStep(origIdx, true);
           if ((pt.data.images && pt.data.images.length > 0) || pt.data.description) {
@@ -1282,7 +1441,9 @@
 
       document.getElementById('modalTitle').innerText = spot.name;
       document.getElementById('modalDescription').innerText = spot.description || 'ไม่มีคำอธิบาย';
-      currentModalText = `${spot.name} ${spot.description || ''}`;
+      currentModalText = (spot.description && spot.description.trim() !== '')
+        ? spot.description.trim()
+        : spot.name;
 
       const carouselInner = document.getElementById('carouselInner');
       const carouselIndicators = document.getElementById('carouselIndicators');
