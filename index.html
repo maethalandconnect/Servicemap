@@ -467,18 +467,18 @@
       <select id="wayGroupSelect" class="form-select form-select-sm mb-2" style="display: none;" onchange="onWayGroupChange()"></select>
       <div class="d-flex gap-1 mb-1">
         <button class="btn btn-emerald btn-sm flex-grow-1 fw-medium" onclick="showAllWayRoute()">
-          <i class="fa-solid fa-route me-1"></i> แสดงเส้นทางทั้งหมด
+          <i class="fa-solid fa-play me-1"></i> แสดงเส้นทางทั้งหมด
         </button>
         <button class="btn btn-outline-secondary btn-sm" onclick="clearWayRoute()" title="ซ่อนเส้นลูกศร">
           <i class="fa-solid fa-eraser"></i>
         </button>
       </div>
-      <!-- ปุ่มอธิบายขั้นตอนอัตโนมัติแบบวนซ้ำ และปุ่มหยุด -->
+      <!-- ปุ่มอธิบายขั้นตอนอัตโนมัติแบบวนซ้ำ และปุ่มหยุด คู่กัน -->
       <div class="d-flex gap-1">
         <button id="btnAutoLoopWay" class="btn btn-warning btn-sm flex-grow-1 fw-medium text-dark" onclick="startAutoLoopWay()">
           <i class="fa-solid fa-repeat me-1"></i> อธิบายอัตโนมัติ (วนซ้ำ)
         </button>
-        <button id="btnStopLoopWay" class="btn btn-outline-danger btn-sm fw-medium" onclick="stopAutoLoopWay()" disabled title="หยุดการอธิบายอัตโนมัติ">
+        <button id="btnStopAutoLoopWay" class="btn btn-danger btn-sm fw-medium px-3" onclick="stopAutoLoopWay()" disabled>
           <i class="fa-solid fa-stop me-1"></i> หยุด
         </button>
       </div>
@@ -652,25 +652,36 @@
     let hasPlayedWelcome = false;
     let selectedThaiVoice = null;
 
-    // ตัวแปรควบคุมการอ่านวนซ้ำอัตโนมัติ
+    // ตัวแปรสำหรับโหมดอธิบายขั้นตอนอัตโนมัติแบบวนซ้ำ
     let isAutoLoopingWay = false;
-    let autoLoopTimer = null;
     let autoLoopStepIndex = 0;
+    let autoLoopTimer = null;
 
     let speechSettings = {
       welcomeSpeech: 'สำนักงานที่ดินจังหวัดลำปาง สาขาแม่ทะ ยินดีให้บริการค่ะ นี่คือแผนผังสำนักงานอิเล็กทรอนิกส์ ท่านสามารถกดนำทางเพื่อแสดงจุดบริการแต่ละจุด ได้จากเมนูด้านซ้ายมือ หรือ สามารถกดดูขั้นตอนการขอรับบริการแต่ละจุด ได้จากเมนูด้านขวาค่ะ',
       wayDrawerSpeech: 'ท่านสามารถกดที่ขั้นตอนเพื่อให้ระบบนำทางไปยังจุดบริการ ตามลำดับขั้นตอนค่ะ'
     };
 
-    // ================= ระบบเสียงอ่านภาษาไทยสุภาพ (Thai TTS) =================
+    // ================= ระบบเสียงอ่านภาษาไทยบังคับเสียงผู้หญิง (ทั้งมือถือและคอมพิวเตอร์) =================
     function loadThaiVoices() {
       if (!('speechSynthesis' in window)) return;
       const voices = window.speechSynthesis.getVoices();
-      const thaiVoices = voices.filter(v => v.lang && v.lang.toLowerCase().includes('th'));
+      const thaiVoices = voices.filter(v =>
+        (v.lang && v.lang.toLowerCase().replace('_', '-').includes('th')) ||
+        /thai|ไทย|premwadee|kanya|narisa|niwat|pattara/i.test(v.name)
+      );
+
       if (thaiVoices.length > 0) {
-        selectedThaiVoice = thaiVoices.find(v =>
-          /premwadee|google|female|kanya|narisa|หญิง/i.test(v.name)
-        ) || thaiVoices[0];
+        // กรองเฉพาะเสียงผู้หญิงก่อนเป็นอันดับแรก (Windows: Premwadee, iOS/macOS: Kanya, Android/Chrome: Google ไทย / Female / Narisa)
+        const femaleVoice = thaiVoices.find(v =>
+          /premwadee|kanya|narisa|female|woman|girl|หญิง|siri/i.test(v.name) &&
+          !/niwat|pattara|male|man|ชาย/i.test(v.name)
+        );
+        // หากไม่ระบุเพศในชื่อ ให้เลือกเสียงที่ไม่ใช่เสียงผู้ชาย (เช่น Google ภาษาไทย บน Android/Chrome ซึ่งเป็นเสียงผู้หญิง)
+        const nonMaleVoice = thaiVoices.find(v =>
+          !/niwat|pattara|male|man|ชาย/i.test(v.name)
+        );
+        selectedThaiVoice = femaleVoice || nonMaleVoice || thaiVoices[0];
       }
     }
 
@@ -679,11 +690,9 @@
       window.speechSynthesis.onvoiceschanged = loadThaiVoices;
     }
 
+    // onEndCallback จะทำงานเมื่อระบบอ่านข้อความนั้นจบลง
     function speakThai(text, onBlockedCallback, onEndCallback) {
-      if (!('speechSynthesis' in window) || !text) {
-        if (typeof onEndCallback === 'function') onEndCallback();
-        return;
-      }
+      if (!('speechSynthesis' in window) || !text) return;
       loadThaiVoices();
 
       const synth = window.speechSynthesis;
@@ -698,8 +707,9 @@
         if (selectedThaiVoice) {
           utterance.voice = selectedThaiVoice;
         }
-        utterance.rate = 1.02;
-        utterance.pitch = 1.12;
+        utterance.rate = 1.0;
+        // ปรับระดับเสียงสูงขึ้นเล็กน้อย (1.18) เพื่อให้โทนเสียงผู้หญิงชัดเจนและนุ่มนวลบนทุกอุปกรณ์
+        utterance.pitch = 1.18;
         utterance.volume = 1.0;
 
         utterance.onend = function() {
@@ -711,8 +721,6 @@
         utterance.onerror = function(e) {
           if ((e.error === 'not-allowed' || e.error === 'interrupted') && typeof onBlockedCallback === 'function') {
             onBlockedCallback();
-          } else if (e.error !== 'canceled' && e.error !== 'interrupted' && typeof onEndCallback === 'function') {
-            onEndCallback();
           }
         };
 
@@ -720,8 +728,7 @@
         if (synth.paused) synth.resume();
       };
 
-      // หน่วงสั้นๆ 30ms หลัง cancel() เพื่อให้เบราว์เซอร์เริ่มอ่านข้อความใหม่ทันทีไม่ค้าง
-      setTimeout(startSpeak, 30);
+      setTimeout(startSpeak, 40);
     }
 
     function triggerWelcomeSpeech() {
@@ -733,92 +740,16 @@
     }
 
     function replayWelcomeSpeech() {
-      stopAutoLoopWay(false);
+      stopAutoLoopWay();
       hasPlayedWelcome = true;
       speakThai(speechSettings.welcomeSpeech);
     }
 
     function speakCurrentModal() {
-      stopAutoLoopWay(false);
+      stopAutoLoopWay();
       if (currentModalText) {
         speakThai(currentModalText);
       }
-    }
-
-    // ================= ระบบอธิบายขั้นตอนอัตโนมัติแบบวนซ้ำ =================
-    function updateAutoLoopButtons() {
-      const btnStart = document.getElementById('btnAutoLoopWay');
-      const btnStop = document.getElementById('btnStopLoopWay');
-      if (!btnStart || !btnStop) return;
-
-      if (isAutoLoopingWay) {
-        btnStart.classList.remove('btn-warning', 'text-dark');
-        btnStart.classList.add('btn-success', 'text-white');
-        btnStart.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังอธิบายวนซ้ำ...';
-        btnStop.disabled = false;
-        btnStop.classList.remove('btn-outline-danger');
-        btnStop.classList.add('btn-danger', 'text-white');
-      } else {
-        btnStart.classList.remove('btn-success', 'text-white');
-        btnStart.classList.add('btn-warning', 'text-dark');
-        btnStart.innerHTML = '<i class="fa-solid fa-repeat me-1"></i> อธิบายอัตโนมัติ (วนซ้ำ)';
-        btnStop.disabled = true;
-        btnStop.classList.remove('btn-danger', 'text-white');
-        btnStop.classList.add('btn-outline-danger');
-      }
-    }
-
-    function startAutoLoopWay() {
-      if (filteredWays.length === 0) return;
-      stopAutoLoopWay(false);
-      isAutoLoopingWay = true;
-      autoLoopStepIndex = 0;
-      hasPlayedWelcome = true;
-      updateAutoLoopButtons();
-      runAutoLoopStep();
-    }
-
-    function runAutoLoopStep() {
-      if (!isAutoLoopingWay || filteredWays.length === 0) return;
-
-      const idx = autoLoopStepIndex % filteredWays.length;
-      // แสดงเส้นทางและหมุดของขั้นตอนปัจจุบัน (โดยยังไม่สั่งพูดซ้ำซ้อน)
-      selectWayStep(idx, false);
-
-      const currentWay = filteredWays[idx];
-      const speechText = currentWay.description
-        ? `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} รายละเอียด ${currentWay.description}`
-        : `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} ค่ะ`;
-
-      speakThai(speechText, () => {
-        // กรณีเบราว์เซอร์บล็อกเสียง ให้หน่วงเวลาแล้วขยับไปขั้นตอนถัดไปตามรอบ
-        if (isAutoLoopingWay) {
-          autoLoopTimer = setTimeout(() => {
-            autoLoopStepIndex = (idx + 1) % filteredWays.length;
-            runAutoLoopStep();
-          }, 3000);
-        }
-      }, () => {
-        // เมื่ออ่านจบแต่ละขั้นตอน เว้นจังหวะ 1.5 วินาทีแล้ววนไปขั้นตอนถัดไปเรื่อยๆ
-        if (isAutoLoopingWay) {
-          autoLoopTimer = setTimeout(() => {
-            autoLoopStepIndex = (idx + 1) % filteredWays.length;
-            runAutoLoopStep();
-          }, 1500);
-        }
-      });
-    }
-
-    function stopAutoLoopWay(cancelSpeech = true) {
-      isAutoLoopingWay = false;
-      if (autoLoopTimer) {
-        clearTimeout(autoLoopTimer);
-        autoLoopTimer = null;
-      }
-      if (cancelSpeech && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      updateAutoLoopButtons();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -855,14 +786,15 @@
 
       if (willOpen) {
         nav.classList.remove('open');
-        hasPlayedWelcome = true;
         if (!isAutoLoopingWay) {
+          hasPlayedWelcome = true;
           speakThai(speechSettings.wayDrawerSpeech);
         }
       }
     }
 
     function openAdminModal() {
+      stopAutoLoopWay();
       document.getElementById('adminPassInput').value = '';
       document.getElementById('adminPassError').style.display = 'none';
       adminPassModal.show();
@@ -989,7 +921,7 @@
 
     function onWayGroupChange() {
       const wasLooping = isAutoLoopingWay;
-      stopAutoLoopWay(false);
+      stopAutoLoopWay();
       filterWaysBySelectedGroup();
       if (wasLooping) {
         startAutoLoopWay();
@@ -1037,10 +969,7 @@
             ${way.description ? `<small class="d-block text-truncate opacity-75" style="font-size:11px;">${way.description}</small>` : ''}
           </div>
         `;
-        btn.onclick = () => {
-          stopAutoLoopWay(false);
-          selectWayStep(idx, true);
-        };
+        btn.onclick = () => selectWayStep(idx, true);
         itemWrap.appendChild(btn);
 
         if ((way.images && way.images.length > 0) || way.description) {
@@ -1052,7 +981,6 @@
             : '<i class="fa-solid fa-circle-info"></i>';
           infoBtn.onclick = (e) => {
             e.stopPropagation();
-            stopAutoLoopWay(false);
             selectWayStep(idx, true);
             showDetail({
               name: `ขั้นตอนที่ ${way.step} : ${way.name}`,
@@ -1067,10 +995,124 @@
       });
     }
 
+    // สร้างข้อความเสียงอ่านของแต่ละขั้นตอน (อ่านเฉพาะคำอธิบาย ไม่ต้องอ่านคำว่า "รายละเอียด")
+    function buildWaySpeechText(way) {
+      const desc = (way.description || '').trim();
+      return desc
+        ? `ขั้นตอนที่ ${way.step} ${way.name} ${desc}`
+        : `ขั้นตอนที่ ${way.step} ${way.name} ค่ะ`;
+    }
+
+    // ================= โหมดอธิบายขั้นตอนอัตโนมัติแบบวนซ้ำ (Auto-Loop) =================
+    function startAutoLoopWay() {
+      if (filteredWays.length === 0) return;
+      stopAutoLoopWay();
+
+      isAutoLoopingWay = true;
+      autoLoopStepIndex = 0;
+
+      const btnStart = document.getElementById('btnAutoLoopWay');
+      const btnStop = document.getElementById('btnStopAutoLoopWay');
+      if (btnStart) {
+        btnStart.disabled = true;
+        btnStart.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังอธิบายวนซ้ำ...';
+      }
+      if (btnStop) {
+        btnStop.disabled = false;
+      }
+
+      document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
+
+      if (window.innerWidth < 768) {
+        document.getElementById('wayDrawer').classList.remove('open');
+      }
+
+      runAutoLoopStep();
+    }
+
+    function runAutoLoopStep() {
+      if (!isAutoLoopingWay || filteredWays.length === 0) return;
+
+      const idx = autoLoopStepIndex;
+      const currentWay = filteredWays[idx];
+
+      // ไฮไลต์ปุ่มขั้นตอนปัจจุบัน
+      document.querySelectorAll('.way-step-btn').forEach((b, i) => {
+        b.classList.remove('active', 'prev-active');
+        if (i === idx) {
+          b.classList.add('active');
+          b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (i === idx - 1) {
+          b.classList.add('prev-active');
+        }
+      });
+
+      // แสดงเส้นทางทั้งหมดพร้อมเน้นจุดปัจจุบัน
+      wayViewMode = 'all';
+      activeWayStepIndex = idx;
+      drawWayArrows(filteredWays, idx);
+
+      // แสดงหมุดเด้งที่จุดปัจจุบัน
+      const centerTop = currentWay.coords.top + (currentWay.coords.height / 2);
+      const centerLeft = currentWay.coords.left + (currentWay.coords.width / 2);
+      const pinWrapper = document.getElementById('bouncingPinWrapper');
+      const pinLabel = document.getElementById('bouncingPinLabel');
+      pinLabel.innerText = `ขั้นที่ ${currentWay.step}: ${currentWay.name}`;
+      pinWrapper.style.top = centerTop + '%';
+      pinWrapper.style.left = centerLeft + '%';
+      pinWrapper.style.display = 'block';
+
+      pinWrapper.onclick = () => {
+        if ((currentWay.images && currentWay.images.length > 0) || currentWay.description) {
+          showDetail({
+            name: `ขั้นตอนที่ ${currentWay.step} : ${currentWay.name}`,
+            description: currentWay.description,
+            images: currentWay.images || []
+          }, 'green');
+        }
+      };
+
+      hasPlayedWelcome = true;
+      const speechText = buildWaySpeechText(currentWay);
+
+      // อ่านทีละขั้นตอน เมื่อจบแล้วหน่วง 1.5 วินาทีแล้ววนไปขั้นตอนถัดไปเรื่อยๆ
+      speakThai(speechText, () => {
+        stopAutoLoopWay();
+      }, () => {
+        if (!isAutoLoopingWay) return;
+        autoLoopTimer = setTimeout(() => {
+          if (!isAutoLoopingWay) return;
+          autoLoopStepIndex = (autoLoopStepIndex + 1) % filteredWays.length;
+          runAutoLoopStep();
+        }, 1500);
+      });
+    }
+
+    function stopAutoLoopWay() {
+      isAutoLoopingWay = false;
+      if (autoLoopTimer) {
+        clearTimeout(autoLoopTimer);
+        autoLoopTimer = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      const btnStart = document.getElementById('btnAutoLoopWay');
+      const btnStop = document.getElementById('btnStopAutoLoopWay');
+      if (btnStart) {
+        btnStart.disabled = false;
+        btnStart.innerHTML = '<i class="fa-solid fa-repeat me-1"></i> อธิบายอัตโนมัติ (วนซ้ำ)';
+      }
+      if (btnStop) {
+        btnStop.disabled = true;
+      }
+    }
+
     // แสดงเส้นลูกศรแนวฉากเชื่อมโยงครบทุกจุด (เมื่อกดปุ่ม "แสดงเส้นทางทั้งหมด" เท่านั้น)
     function showAllWayRoute() {
       if (filteredWays.length === 0) return;
-      stopAutoLoopWay(false);
+      stopAutoLoopWay();
       document.getElementById('bouncingPinWrapper').style.display = 'none';
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
@@ -1092,9 +1134,10 @@
       document.getElementById('mapWrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // กดเลือกขั้นตอนเฉพาะลำดับ -> แสดงลูกศรเฉพาะจุดก่อนหน้า -> จุดปัจจุบัน เท่านั้น และอ่านรายละเอียดทันที
+    // กดเลือกขั้นตอนเฉพาะลำดับ -> แสดงลูกศรเฉพาะจุดก่อนหน้า -> จุดปัจจุบัน เท่านั้น และอ่านคำอธิบายทันที
     function selectWayStep(targetIdx, shouldSpeak = true) {
       if (filteredWays.length === 0) return;
+      stopAutoLoopWay();
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
 
@@ -1130,7 +1173,6 @@
 
       pinWrapper.onclick = () => {
         if ((currentWay.images && currentWay.images.length > 0) || currentWay.description) {
-          stopAutoLoopWay(false);
           showDetail({
             name: `ขั้นตอนที่ ${currentWay.step} : ${currentWay.name}`,
             description: currentWay.description,
@@ -1139,23 +1181,20 @@
         }
       };
 
-      // อ่านข้อความรายละเอียดของขั้นตอนออกเสียงอัตโนมัติทันทีเมื่อกดที่ปุ่ม
+      // อ่านเฉพาะคำอธิบายของขั้นตอนออกเสียงอัตโนมัติทันทีเมื่อกดที่ปุ่ม (ไม่มีคำว่า รายละเอียด)
       if (shouldSpeak) {
         hasPlayedWelcome = true;
-        const speechText = currentWay.description
-          ? `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} รายละเอียด ${currentWay.description}`
-          : `ขั้นตอนที่ ${currentWay.step} ${currentWay.name} ค่ะ`;
-        speakThai(speechText);
+        speakThai(buildWaySpeechText(currentWay));
       }
 
-      if (window.innerWidth < 768 && !isAutoLoopingWay) {
+      if (window.innerWidth < 768) {
         document.getElementById('wayDrawer').classList.remove('open');
       }
       pinWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function clearWayRoute() {
-      stopAutoLoopWay(true);
+      stopAutoLoopWay();
       wayViewMode = null;
       activeWayStepIndex = null;
       document.getElementById('waySvgOverlay').innerHTML = '';
@@ -1167,7 +1206,7 @@
     function redrawCurrentWay() {
       if (!wayViewMode || filteredWays.length === 0) return;
       if (wayViewMode === 'all') {
-        drawWayArrows(filteredWays, -1);
+        drawWayArrows(filteredWays, activeWayStepIndex !== null ? activeWayStepIndex : -1);
       } else if (wayViewMode === 'step' && activeWayStepIndex !== null) {
         const stepsToShow = (activeWayStepIndex > 0)
           ? [filteredWays[activeWayStepIndex - 1], filteredWays[activeWayStepIndex]]
@@ -1186,7 +1225,6 @@
       }
       if (pts.length < 2) return pts;
 
-      // ตัดระยะจุดเริ่มต้น (trimStart)
       let remStart = trimStart;
       while (pts.length > 2 && remStart > 0) {
         const d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
@@ -1206,7 +1244,6 @@
         };
       }
 
-      // ตัดระยะจุดปลายทาง (trimEnd) โดยคงทิศทางตั้งฉากของปลายลูกศรไว้
       let remEnd = trimEnd;
       while (pts.length > 2 && remEnd > 0) {
         const n = pts.length;
@@ -1333,7 +1370,6 @@
           <div class="way-step-tag">${pt.data.name}</div>
         `;
         marker.onclick = () => {
-          stopAutoLoopWay(false);
           selectWayStep(origIdx, true);
           if ((pt.data.images && pt.data.images.length > 0) || pt.data.description) {
             showDetail({
@@ -1382,6 +1418,7 @@
     }
 
     function showDetail(spot, theme = 'blue') {
+      stopAutoLoopWay();
       const header = document.getElementById('infoModalHeader');
       const descCard = document.getElementById('modalDescCard');
       const descTitle = document.getElementById('modalDescTitle');
