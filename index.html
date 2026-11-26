@@ -46,8 +46,8 @@
     }
     .hotspot.active-target {
       background-color: rgba(220, 53, 69, 0.2);
-      border: 2px solid #dc3545;
-      box-shadow: 0 0 15px rgba(220, 53, 69, 0.6);
+      border: 1.5px solid #dc3545;
+      box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
       z-index: 10;
     }
 
@@ -62,14 +62,14 @@
       z-index: 25;
     }
     .way-animated-line {
-      stroke-dasharray: 12 8;
-      animation: dashFlow 1s linear infinite;
+      stroke-dasharray: 6 4;
+      animation: dashFlow 0.9s linear infinite;
     }
     @keyframes dashFlow {
-      to { stroke-dashoffset: -20; }
+      to { stroke-dashoffset: -10; }
     }
 
-    /* ป้ายจุดขั้นตอนบนแผนผัง */
+    /* ป้ายจุดขั้นตอนบนแผนผัง (ย่อขนาดเล็กสุด และตัดข้อความสีเขียวออก) */
     .way-point-marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -81,39 +81,27 @@
       transition: transform 0.2s ease;
     }
     .way-point-marker:hover {
-      transform: translate(-50%, -50%) scale(1.1);
+      transform: translate(-50%, -50%) scale(1.15);
       z-index: 40;
     }
     .way-step-circle {
-      width: 34px;
-      height: 34px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: linear-gradient(135deg, #059669, #047857);
       color: #fff;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 3px solid #fff;
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.55);
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 5px rgba(5, 150, 105, 0.5);
     }
     .way-step-circle.active-step {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.35), 0 4px 14px rgba(217, 119, 6, 0.6);
-      transform: scale(1.15);
-    }
-    .way-step-tag {
-      margin-top: 4px;
-      background: rgba(6, 78, 59, 0.92);
-      color: #fff;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 500;
-      white-space: nowrap;
-      border: 1px solid rgba(255,255,255,0.6);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35), 0 2px 6px rgba(217, 119, 6, 0.55);
+      transform: scale(1.1);
     }
 
     /* Tooltip ลอยตามเคอร์เซอร์เมาส์ */
@@ -325,7 +313,7 @@
     .btn-emerald { background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; }
     .btn-emerald:hover { background: linear-gradient(135deg, #047857, #065f46); color: #fff; }
 
-    /* ================= หมุดเด้ง (Bouncing Pin) บนแผนผัง ================= */
+    /* ================= หมุดเด้ง (Bouncing Pin) ขนาดเล็กที่สุด บนแผนผัง ================= */
     .bouncing-pin-wrapper {
       position: absolute;
       z-index: 50;
@@ -344,30 +332,31 @@
     .bouncing-pin-label {
       background: #dc3545;
       color: #fff;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10px;
       font-weight: 600;
+      line-height: 1.2;
       white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.45);
-      margin-bottom: 4px;
-      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(220, 53, 69, 0.45);
+      margin-bottom: 2px;
+      border: 1px solid #fff;
     }
-    .bouncing-pin-icon { font-size: 42px; color: #dc3545; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)); line-height: 1; }
+    .bouncing-pin-icon { font-size: 22px; color: #dc3545; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35)); line-height: 1; }
     .pin-pulse {
       position: absolute;
-      bottom: -6px;
+      bottom: -3px;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 10px;
+      width: 12px;
+      height: 5px;
       background: rgba(220, 53, 69, 0.5);
       border-radius: 50%;
       animation: pulseRing 1.2s infinite ease-out;
       pointer-events: none;
     }
-    @keyframes pinBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-16px); } }
-    @keyframes pulseRing { 0% { transform: translateX(-50%) scale(0.6); opacity: 1; } 100% { transform: translateX(-50%) scale(2.4); opacity: 0; } }
+    @keyframes pinBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-7px); } }
+    @keyframes pulseRing { 0% { transform: translateX(-50%) scale(0.6); opacity: 1; } 100% { transform: translateX(-50%) scale(2.1); opacity: 0; } }
 
     /* Glassmorphism 3D Modal */
     .modal-content.glass-modal {
@@ -668,13 +657,11 @@
       const voices = window.speechSynthesis.getVoices();
       if (!voices || voices.length === 0) return;
 
-      // กรองเฉพาะเสียงภาษาไทยทั้งหมด
       const thaiVoices = voices.filter(v =>
         (v.lang && v.lang.toLowerCase().includes('th')) ||
         /thai|ไทย|premwadee|niwat|achara|kanya|narisa/i.test(v.name)
       );
 
-      // ตัดเสียงผู้ชายออก (เช่น Niwat, Pattara, Male, Man)
       const femaleThaiVoices = thaiVoices.filter(v =>
         !/niwat|pattara|male|man|ชาย/i.test(v.name)
       );
@@ -682,7 +669,6 @@
       const candidateList = femaleThaiVoices.length > 0 ? femaleThaiVoices : thaiVoices;
 
       if (candidateList.length > 0) {
-        // จัดลำดับความสำคัญให้เลือกเสียงผู้หญิงภาษาไทยที่ชัดเจนที่สุดก่อน
         selectedThaiVoice =
           candidateList.find(v => /premwadee/i.test(v.name)) ||
           candidateList.find(v => /google.*thai|google ภาษาไทย/i.test(v.name)) ||
@@ -711,14 +697,13 @@
       const startSpeak = () => {
         loadThaiVoices();
         const utterance = new SpeechSynthesisUtterance(text);
-        window._activeUtterance = utterance; // ป้องกันเบราว์เซอร์ตัดเสียงกลางคัน
+        window._activeUtterance = utterance;
         utterance.lang = 'th-TH';
 
         if (selectedThaiVoice) {
           utterance.voice = selectedThaiVoice;
         }
 
-        // ปรับระดับเสียงให้เป็นผู้หญิงที่นุ่มนวล ชัดเจน ทั้งบนคอมพิวเตอร์และมือถือ
         utterance.rate = 1.0;
         utterance.pitch = 1.15;
         utterance.volume = 1.0;
@@ -744,7 +729,6 @@
         if (synth.paused) synth.resume();
       };
 
-      // หน่วงสั้นๆ 35ms หลัง cancel() เพื่อให้เบราว์เซอร์เริ่มอ่านข้อความใหม่ทันทีไม่ค้าง
       setTimeout(startSpeak, 35);
     }
 
@@ -1039,10 +1023,9 @@
       hasPlayedWelcome = true;
       updateLoopButtonsUI();
 
-      // แสดงเส้นทางทั้งหมดบนแผนผังพร้อมเริ่มอธิบายทีละขั้นตอนแบบวนซ้ำ
       document.querySelectorAll('.nav-spot-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active-target'));
-      wayViewMode = 'all';
+      wayViewMode = 'step';
 
       if (window.innerWidth < 768) {
         document.getElementById('wayDrawer').classList.remove('open');
@@ -1058,22 +1041,26 @@
       const idx = loopStepIndex;
       const currentWay = filteredWays[idx];
       activeWayStepIndex = idx;
-      wayViewMode = 'all';
+      wayViewMode = 'step';
 
-      // ไฮไลต์ปุ่มขั้นตอนที่กำลังอธิบาย
+      // ไฮไลต์ปุ่มขั้นตอนปัจจุบัน และจุดก่อนหน้า
       document.querySelectorAll('.way-step-btn').forEach((b, i) => {
         b.classList.remove('active', 'prev-active');
         if (i === idx) {
           b.classList.add('active');
-        } else if (i < idx) {
+        } else if (i === idx - 1) {
           b.classList.add('prev-active');
         }
       });
 
-      // วาดเส้นทางทั้งหมดโดยเน้นวงกลมสีส้มที่ขั้นตอนปัจจุบัน
-      drawWayArrows(filteredWays, idx);
+      // แสดงลูกศรเชื่อมเฉพาะจุดก่อนหน้า (idx - 1) -> จุดปัจจุบัน (idx) เท่านั้น
+      const stepsToShow = (idx > 0)
+        ? [filteredWays[idx - 1], filteredWays[idx]]
+        : [filteredWays[0]];
 
-      // ปักหมุดเด้งที่จุดขั้นตอนปัจจุบัน
+      drawWayArrows(stepsToShow, idx);
+
+      // ปักหมุดเด้งขนาดเล็กพร้อมข้อความกำกับสีแดงที่จุดขั้นตอนปัจจุบัน
       const centerTop = currentWay.coords.top + (currentWay.coords.height / 2);
       const centerLeft = currentWay.coords.left + (currentWay.coords.width / 2);
       const pinWrapper = document.getElementById('bouncingPinWrapper');
@@ -1230,7 +1217,7 @@
       }
     }
 
-    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรชี้ตรงขอบวงกลมพอดี
+    // ตัดหัวและท้ายเส้น Polyline แนวฉากให้หัวลูกศรชี้ตรงขอบวงกลมขนาดเล็กพอดี
     function trimOrthogonalPolyline(rawPts, trimStart, trimEnd) {
       const pts = [];
       for (let i = 0; i < rawPts.length; i++) {
@@ -1240,7 +1227,6 @@
       }
       if (pts.length < 2) return pts;
 
-      // ตัดระยะจุดเริ่มต้น (trimStart)
       let remStart = trimStart;
       while (pts.length > 2 && remStart > 0) {
         const d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
@@ -1260,12 +1246,11 @@
         };
       }
 
-      // ตัดระยะจุดปลายทาง (trimEnd) โดยคงทิศทางตั้งฉากของปลายลูกศรไว้
       let remEnd = trimEnd;
       while (pts.length > 2 && remEnd > 0) {
         const n = pts.length;
         const d = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
-        if (d <= remEnd - 10) {
+        if (d <= remEnd - 6) {
           remEnd -= d;
           pts.pop();
         } else {
@@ -1275,7 +1260,7 @@
       const n = pts.length;
       const dLast = Math.hypot(pts[n - 1].x - pts[n - 2].x, pts[n - 1].y - pts[n - 2].y);
       if (dLast > 0) {
-        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 8));
+        const actualTrim = Math.min(remEnd, Math.max(0, dLast - 5));
         const r = actualTrim / dLast;
         pts[n - 1] = {
           x: pts[n - 1].x - (pts[n - 1].x - pts[n - 2].x) * r,
@@ -1293,7 +1278,7 @@
 
       if (dir === 'H') {
         const offsetPx = (offsetPct / 100) * W;
-        const midX = Math.max(12, Math.min(W - 12, (p1.x + p2.x) / 2 + offsetPx));
+        const midX = Math.max(8, Math.min(W - 8, (p1.x + p2.x) / 2 + offsetPx));
         rawPts = [
           { x: p1.x, y: p1.y },
           { x: midX, y: p1.y },
@@ -1302,7 +1287,7 @@
         ];
       } else {
         const offsetPx = (offsetPct / 100) * H;
-        const midY = Math.max(12, Math.min(H - 12, (p1.y + p2.y) / 2 + offsetPx));
+        const midY = Math.max(8, Math.min(H - 8, (p1.y + p2.y) / 2 + offsetPx));
         rawPts = [
           { x: p1.x, y: p1.y },
           { x: p1.x, y: midY },
@@ -1311,10 +1296,10 @@
         ];
       }
 
-      return trimOrthogonalPolyline(rawPts, 18, 22);
+      return trimOrthogonalPolyline(rawPts, 10, 12);
     }
 
-    // วาดเส้นลูกศรแนวฉาก SVG และป้ายจุดขั้นตอน
+    // วาดเส้นลูกศรแนวฉาก SVG ขนาดเล็กที่สุด และจุดตัวเลขลำดับขั้นตอน (ไม่มีข้อความสีเขียว)
     function drawWayArrows(steps, activeOriginalIdx) {
       const wrapper = document.getElementById('mapWrapper');
       const svg = document.getElementById('waySvgOverlay');
@@ -1329,11 +1314,11 @@
 
       let svgContent = `
         <defs>
-          <marker id="wayArrowHead" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,7 L9,3.5 z" fill="#059669" />
+          <marker id="wayArrowHead" markerWidth="6" markerHeight="6" refX="4.5" refY="2.2" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,4.4 L5.5,2.2 z" fill="#059669" />
           </marker>
-          <marker id="wayArrowHeadBorder" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,8 L10,4 z" fill="#ffffff" />
+          <marker id="wayArrowHeadBorder" markerWidth="7" markerHeight="7" refX="5" refY="2.6" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,5.2 L6.5,2.6 z" fill="#ffffff" />
           </marker>
         </defs>
       `;
@@ -1355,17 +1340,17 @@
         const p2 = points[i + 1];
         const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
-        if (dist > 28) {
+        if (dist > 16) {
           const orthoPts = buildOrthogonalPoints(p1, p2, W, H);
           const pointsStr = orthoPts.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' ');
 
           svgContent += `
             <polyline points="${pointsStr}"
-                      fill="none" stroke="#ffffff" stroke-width="7"
+                      fill="none" stroke="#ffffff" stroke-width="3"
                       stroke-linecap="round" stroke-linejoin="round"
                       marker-end="url(#wayArrowHeadBorder)" opacity="0.92" />
             <polyline points="${pointsStr}"
-                      fill="none" stroke="#059669" stroke-width="4"
+                      fill="none" stroke="#059669" stroke-width="1.8"
                       stroke-linecap="round" stroke-linejoin="round"
                       class="way-animated-line"
                       marker-end="url(#wayArrowHead)" />
@@ -1382,9 +1367,9 @@
         marker.className = 'way-point-marker';
         marker.style.left = pt.cxPct + '%';
         marker.style.top = pt.cyPct + '%';
+        marker.title = `ขั้นตอนที่ ${pt.data.step} : ${pt.data.name}`;
         marker.innerHTML = `
           <div class="way-step-circle ${isCurrentTarget ? 'active-step' : ''}">${pt.data.step}</div>
-          <div class="way-step-tag">${pt.data.name}</div>
         `;
         marker.onclick = () => {
           stopLoopWayRoute(false);
